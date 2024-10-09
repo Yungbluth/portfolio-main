@@ -1,7 +1,11 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 
 const Sorting = function () {
-    const [value, setValue] = useState(5);
+
+    //const [value, setValue] = useState(5);
+    //const [sortPush, setSortPush] = useState({ bool: 0 });
+    const [curArray, setCurArray] = useState([1,2,3,4,5]);
+    let value = curArray.length;
     let width = 50;
     let opacity = 1;
     let boxWidth = document.documentElement.clientWidth * 0.8;
@@ -22,38 +26,60 @@ const Sorting = function () {
         opacity = 1;
     }
 
-  let testArray = createNewArray(value);
-
   function createNewArray(arrSize) {
 
     for (var numArray = [], i = 0; i < arrSize; ++i) {
         numArray[i] = i;
       }
-        var tmp,
-          current,
-          top = arrSize;
-        if (top)
-          while (--top) {
-            current = Math.floor(Math.random() * (top + 1));
-            tmp = numArray[current];
-            numArray[current] = numArray[top];
-            numArray[top] = tmp;
-          }
-        return numArray;
+      return numArray;
+    }
+
+  function shuffle(shufArray) {
+      let currentIndex = shufArray.length;
+
+      // While there remain elements to shuffle...
+      while (currentIndex != 0) {
+    
+        // Pick a remaining element...
+        let randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+    
+        // And swap it with the current element.
+        [shufArray[currentIndex], shufArray[randomIndex]] = [
+          shufArray[randomIndex], shufArray[currentIndex]];
+      }
+      return shufArray;
   }
 
   
   function sliderListener(e) {
-    setValue(e.target.value);
+    let tempArray = createNewArray(e.target.value);
+    setCurArray(tempArray);
+  }
+
+
+  function shuffleArray() {
+    let tempArray = curArray.slice();
+    tempArray = shuffle(tempArray);
+    setCurArray(tempArray);
     
+  }
+
+  function maybeSort() {
+    let tempArray = curArray.slice();
+    tempArray.sort(function(a, b) {
+      return a-b;
+    });
+    setCurArray(tempArray);
   }
 
   return (
     <div>
-        <button>Sort!</button>
+        <button onClick={maybeSort}>Sort!</button>
+        <button onClick={shuffleArray}>Shuffle!</button>
         Set Array Size!<input type="range" min="5" max="100" step="1" value={value} onChange={sliderListener} id="sizeArraySlider"></input>
     <div className="arrayContainer">
-      {testArray.map((num, index) => (
+    {curArray.map((num, index) => (
         <div
           className="nums"
           style={{
@@ -65,6 +91,7 @@ const Sorting = function () {
           <h2 style={{ opacity: `${opacity}` }}>{num}</h2>
         </div>
       ))}
+      
     </div>
     </div>
   );

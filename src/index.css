@@ -627,7 +627,7 @@ strong {
 
   border: solid black 2px;
 
-  align-items: center;
+  align-items: left;
 
   background-color: lightgreen;
 
@@ -643,7 +643,6 @@ strong {
 
   font-size: 20px;
   align-items: center;
-
   margin-left: 40%;
 }
 
