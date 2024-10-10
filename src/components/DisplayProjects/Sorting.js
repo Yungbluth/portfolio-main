@@ -64,19 +64,6 @@ const Sorting = function () {
     setCurArray(tempArray);
   }
 
-  function maybeSort() {
-    let tempArray = curArray.slice();
-    tempArray.sort(function (a, b) {
-      return a - b;
-    });
-    setCurArray(tempArray);
-  }
-
-  function swapTwo() {
-    document.getElementById(1).style.transform = `translateX(${width}px)`;
-    document.getElementById(2).style.transform = `translateX(${-width}px)`;
-  }
-
   function resetTest() {
     for (let i = 0; i < curArray.length; i++) {
       document.getElementById(i).style.transform = `none`;
@@ -264,7 +251,7 @@ const Sorting = function () {
   
         return i + 1;
     }*/
-   
+
   //Hoare's Partition
   function partition(arr, low, high, queue) {
     let pivot = arr[low];
@@ -318,17 +305,110 @@ const Sorting = function () {
     }
   }
 
-  function selectionSort() {}
+  function selectionSortFirst() {
+    let arr = curArray.slice();
+    let queue = [];
+    selectionSort(arr, queue);
+    let numTranslated = [];
+    let count = 0;
+    var i;
+    for (i = 0; i < queue.length; i++) {
+      setTimeout(() => {
+        if (numTranslated[queue[count].first] == null) {
+          numTranslated[queue[count].first] = 0;
+        }
+        if (numTranslated[queue[count].second] == null) {
+          numTranslated[queue[count].second] = 0;
+        }
+        let difference = queue[count].firstIndex - queue[count].secondIndex;
+        document.getElementById(
+          queue[count].first
+        ).style.transitionDuration = `0.1s`;
+        document.getElementById(
+          queue[count].second
+        ).style.transitionDuration = `0.1s`;
+        document.getElementById(
+          queue[count].first
+        ).style.transform = `translateX(${
+          -width * difference + width * numTranslated[queue[count].first]
+        }px)`;
+        document.getElementById(
+          queue[count].second
+        ).style.transform = `translateX(${
+          width * difference + width * numTranslated[queue[count].second]
+        }px)`;
+        numTranslated[queue[count].first] =
+          Number(numTranslated[queue[count].first]) - difference;
+        numTranslated[queue[count].second] =
+          Number(numTranslated[queue[count].second]) + difference;
+        count = count + 1;
+      }, i * 200);
+    }
+    setTimeout(() => {
+      for (i = 0; i < queue.length; i++) {
+        document.getElementById(queue[i].first).style.transitionDuration = `0s`;
+        document.getElementById(
+          queue[i].second
+        ).style.transitionDuration = `0s`;
+      }
+      let tempArray = createNewArray(arr.length);
+      setCurArray(tempArray);
+      resetTest();
+    }, queue.length * 200 + 500);
+  }
+
+  function selectionSort(arr, queue) {
+    let n = arr.length;
+    for (let i = 0; i < n - 1; i++) {
+    
+        // Assume the current position holds
+        // the minimum element
+        let min_idx = i;
+        
+        // Iterate through the unsorted portion
+        // to find the actual minimum
+        for (let j = i + 1; j < n; j++) {
+            if (arr[j] < arr[min_idx]) {
+            
+                // Update min_idx if a smaller element is found
+                min_idx = j;
+            }
+        }
+        
+        // Move minimum element to its
+        // correct position
+        queue.push({
+          first: arr[i],
+          second: arr[min_idx],
+          firstIndex: i,
+          secondIndex: min_idx,
+        });
+        let temp = arr[i];
+        arr[i] = arr[min_idx];
+        arr[min_idx] = temp;
+    }
+  }
+
+  function activateSorter() {
+    let selected = document.getElementById("dropdownSort");
+    let curAlgo = selected.options[selected.selectedIndex].text;
+    switch(curAlgo) {
+      case "Bubble Sort": bubbleSort();
+      break;
+      case "Quick Sort": quickSortFirst();
+      break;
+      case "Selection Sort": selectionSortFirst();
+      break;
+      default: console.log("NOT IN THE MENU?");
+    }
+  }
 
   //Handle all html given
   return (
     <div>
-      <button onClick={maybeSort}>Sort!</button>
+      <button onClick={activateSorter}>Sort!</button>
       <button onClick={shuffleArray}>Shuffle!</button>
-      <button onClick={swapTwo}>Swap!</button>
-      <button onClick={resetTest}>Reset!</button>
-      <button onClick={bubbleSort}>Bubble!</button>
-      <button onClick={quickSortFirst}>Quick Sort!</button>
+      <select id="dropdownSort"><option>Bubble Sort</option><option>Quick Sort</option><option>Selection Sort</option></select>
       Set Array Size!
       <input
         type="range"
