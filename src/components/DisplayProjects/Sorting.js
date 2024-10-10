@@ -2,9 +2,12 @@ import React, { useState } from "react";
 
 const Sorting = function () {
 
+  //store translates in separate array
+  //stack of translations, animate after array is fully sorted
+
     //const [value, setValue] = useState(5);
     //const [sortPush, setSortPush] = useState({ bool: 0 });
-    const [curArray, setCurArray] = useState([1,2,3,4,5]);
+    const [curArray, setCurArray] = useState([0,1,2,3,4]);
     let value = curArray.length;
     let width = 50;
     let opacity = 1;
@@ -73,10 +76,94 @@ const Sorting = function () {
     setCurArray(tempArray);
   }
 
+  function swapTwo() {
+    document.getElementById(1).style.transform = `translateX(${width}px)`;
+    document.getElementById(2).style.transform = `translateX(${-width}px)`;
+  }
+
+  function resetTest() {
+    for (let i = 0; i < curArray.length; i++) {
+      document.getElementById(i).style.transform = `none`;
+    }
+    
+  }
+
+  //Bubble sort
+  function bubbleSort() {
+    var arr = curArray.slice();
+    var n = arr.length;
+    var i, j, temp;
+    var swapped;
+    //operations are pushed to queue to allow time for animations without messing with the sorting, its a mess
+    let queue = [];
+    for (i = 0; i < n - 1; i++){
+        swapped = false;
+        for (j = 0; j < n - i - 1; j++){
+            if (arr[j] > arr[j + 1]) 
+            {
+                // Swap arr[j] and arr[j+1]
+                temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+                swapped = true;
+                queue.push({index: j.valueOf(), first: arr[j].valueOf(), second: arr[j+1].valueOf()})
+            }
+        }
+
+        // IF no two elements were 
+        // swapped by inner loop, then break
+        if (swapped == false)
+        break;
+    }
+    let numTranslated = [];
+    let count = 0;
+    //perform all swapping operations with animations
+    for (i = 0; i < queue.length; i++) {
+      setTimeout(() => {
+        if (numTranslated[queue[count].first] == null) {
+          numTranslated[queue[count].first] = 0;
+        }
+        if (numTranslated[queue[count].second] == null) {
+          numTranslated[queue[count].second] = 0;
+        }
+        document.getElementById(queue[count].first).style.transitionDuration = `0.1s`;
+        document.getElementById(queue[count].second).style.transitionDuration = `0.1s`;
+        document.getElementById(queue[count].first).style.transform = `translateX(${-width + width*numTranslated[queue[count].first]}px)`;
+        document.getElementById(queue[count].second).style.transform = `translateX(${width + width*numTranslated[queue[count].second]}px)`;
+        numTranslated[queue[count].first] = Number(numTranslated[queue[count].first]) - 1;
+        numTranslated[queue[count].second] = Number(numTranslated[queue[count].second]) + 1;
+        count = count + 1;
+      }, i*100);
+    }
+    //get rid of transition duration to remove the 'jitter' after sorted and then set sorted array as final
+    setTimeout(() => {
+      for (i = 0; i < queue.length; i++) {
+        document.getElementById(queue[i].first).style.transitionDuration = `0s`;
+        document.getElementById(queue[i].second).style.transitionDuration = `0s`;
+      }
+      let tempArray = createNewArray(arr.length);
+      setCurArray(tempArray);
+      resetTest();
+      
+    }, queue.length * 100 + 200);
+  }
+
+  function quickSort() {
+
+  }
+
+  function selectionSort() {
+
+  }
+
+  //Handle all html given
   return (
     <div>
         <button onClick={maybeSort}>Sort!</button>
         <button onClick={shuffleArray}>Shuffle!</button>
+        <button onClick={swapTwo}>Swap!</button>
+        <button onClick={resetTest}>Reset!</button>
+        <button onClick={bubbleSort}>Bubble!</button>
         Set Array Size!<input type="range" min="5" max="100" step="1" value={value} onChange={sliderListener} id="sizeArraySlider"></input>
     <div className="arrayContainer">
     {curArray.map((num, index) => (
@@ -87,11 +174,11 @@ const Sorting = function () {
             width: `${width}px`,
           }}
           key={index}
+          id={num}
         >
           <h2 style={{ opacity: `${opacity}` }}>{num}</h2>
         </div>
       ))}
-      
     </div>
     </div>
   );
