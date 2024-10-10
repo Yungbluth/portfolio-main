@@ -2,10 +2,21 @@ import React, { useState} from "react";
 import Sorting from "./DisplayProjects/Sorting"
 
 const Interactive = () => {
+
+    let curArray = null;
+    let setCurArray = null;
+
+    const onChildMount = (dataFromChild) => {
+        curArray = dataFromChild[0];
+        setCurArray = dataFromChild[1];
+      };
+
+    
     const Tab = ({ label, onClick, isActive }) => (
         <div
             className={`tab ${isActive ? "active" : ""}`}
             onClick={onClick}
+            id={label}
         >
             {label}
         </div>
@@ -25,9 +36,12 @@ const Interactive = () => {
                         key={index}
                         label={tab.label}
                         onClick={() =>
-                            handleTabClick(index)
+                            {
+                                handleTabClick(index)
+                            }
                         }
                         isActive={index === activeTab}
+                        disabled={false}
                     />
                 ))}
             </div>
@@ -59,7 +73,7 @@ const Interactive = () => {
 
     function getTabData(activeTab) {
         if (activeTab === 0) {
-            return(Sorting());
+            return(<Sorting onMount={onChildMount}/>);
         }
         if (activeTab === 1) {
             return (<div>Tab 2</div>)

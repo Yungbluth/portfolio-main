@@ -1,12 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
-const Sorting = function () {
+const Sorting = function ({onMount}) {
+  const [curArray, setCurArray] = useState([0, 1, 2, 3, 4]);
+  //[curArray, setCurArray] = useState([0, 1, 2, 3, 4]);
+  //console.log = console.warn = console.error = () => {};
   //store translates in separate array
   //stack of translations, animate after array is fully sorted
 
   //const [value, setValue] = useState(5);
   //const [sortPush, setSortPush] = useState({ bool: 0 });
-  const [curArray, setCurArray] = useState([0, 1, 2, 3, 4]);
+  useEffect(() => {
+    onMount([curArray, setCurArray]);
+  }, [onMount, curArray]);
+
   let value = curArray.length;
   let width = 50;
   let opacity = 1;
@@ -39,7 +45,7 @@ const Sorting = function () {
     let currentIndex = shufArray.length;
 
     // While there remain elements to shuffle...
-    while (currentIndex != 0) {
+    while (currentIndex !== 0) {
       // Pick a remaining element...
       let randomIndex = Math.floor(Math.random() * currentIndex);
       currentIndex--;
@@ -68,6 +74,13 @@ const Sorting = function () {
     for (let i = 0; i < curArray.length; i++) {
       document.getElementById(i).style.transform = `none`;
     }
+    document.getElementById("shuffleButton").disabled = false;
+    document.getElementById("sortButton").disabled = false;
+    document.getElementById("dropdownSort").disabled = false;
+    document.getElementById("sizeArraySlider").disabled = false;
+    document.getElementById("Sorting").inert = false;
+    document.getElementById("Tab 2").inert = false;
+    document.getElementById("Tab 3").inert = false;
   }
 
   //Bubble sort
@@ -97,7 +110,7 @@ const Sorting = function () {
 
       // IF no two elements were
       // swapped by inner loop, then break
-      if (swapped == false) break;
+      if (swapped === false) break;
     }
     let numTranslated = [];
     let count = 0;
@@ -392,6 +405,13 @@ const Sorting = function () {
   function activateSorter() {
     let selected = document.getElementById("dropdownSort");
     let curAlgo = selected.options[selected.selectedIndex].text;
+    document.getElementById("shuffleButton").disabled = true;
+    document.getElementById("sortButton").disabled = true;
+    document.getElementById("dropdownSort").disabled = true;
+    document.getElementById("sizeArraySlider").disabled = true;
+    document.getElementById("Sorting").inert = true;
+    document.getElementById("Tab 2").inert = true;
+    document.getElementById("Tab 3").inert = true;
     switch(curAlgo) {
       case "Bubble Sort": bubbleSort();
       break;
@@ -406,8 +426,8 @@ const Sorting = function () {
   //Handle all html given
   return (
     <div>
-      <button onClick={activateSorter}>Sort!</button>
-      <button onClick={shuffleArray}>Shuffle!</button>
+      <button id="shuffleButton" onClick={shuffleArray}>Shuffle!</button>
+      <button id="sortButton" onClick={activateSorter}>Sort!</button>
       <select id="dropdownSort"><option>Bubble Sort</option><option>Quick Sort</option><option>Selection Sort</option></select>
       Set Array Size!
       <input
