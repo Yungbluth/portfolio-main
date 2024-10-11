@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 
-const Sorting = function ({onMount}) {
+const Sorting = function ({onMountSort}) {
   const [curArray, setCurArray] = useState([0, 1, 2, 3, 4]);
   //[curArray, setCurArray] = useState([0, 1, 2, 3, 4]);
   //console.log = console.warn = console.error = () => {};
@@ -10,8 +10,8 @@ const Sorting = function ({onMount}) {
   //const [value, setValue] = useState(5);
   //const [sortPush, setSortPush] = useState({ bool: 0 });
   useEffect(() => {
-    onMount([curArray, setCurArray]);
-  }, [onMount, curArray]);
+    onMountSort([curArray, setCurArray]);
+  }, [onMountSort, curArray]);
 
   let value = curArray.length;
   let width = 50;
@@ -79,7 +79,7 @@ const Sorting = function ({onMount}) {
     document.getElementById("dropdownSort").disabled = false;
     document.getElementById("sizeArraySlider").disabled = false;
     document.getElementById("Sorting").inert = false;
-    document.getElementById("Tab 2").inert = false;
+    document.getElementById("Chess").inert = false;
     document.getElementById("Tab 3").inert = false;
   }
 
@@ -410,7 +410,7 @@ const Sorting = function ({onMount}) {
     document.getElementById("dropdownSort").disabled = true;
     document.getElementById("sizeArraySlider").disabled = true;
     document.getElementById("Sorting").inert = true;
-    document.getElementById("Tab 2").inert = true;
+    document.getElementById("Chess").inert = true;
     document.getElementById("Tab 3").inert = true;
     switch(curAlgo) {
       case "Bubble Sort": bubbleSort();

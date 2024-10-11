@@ -652,6 +652,7 @@ strong {
   position:absolute;
   bottom: 0;
   left: 0;
+  pointer-events: none;
 }
 
 .button-85 {
@@ -749,3 +750,49 @@ strong {
 .tab.active {
   background-color: cyan;
 }
+
+.chessBoard{
+  text-align: center;
+  position: relative;
+}
+
+.piece {
+  position: absolute;
+}
+
+.papan {
+  display: grid;
+  justify-content: center;
+  margin: auto;
+  padding-top: 3px;
+}
+
+.papan div {
+  background-color: rgb(111,143,114);
+}
+
+.papan div:nth-child(-n + 8):nth-child(even),
+.papan div:nth-child(n + 8):nth-child(-n + 16):nth-child(odd),
+.papan div:nth-child(n + 17):nth-child(-n + 24):nth-child(even),
+.papan div:nth-child(n + 25):nth-child(-n + 32):nth-child(odd),
+.papan div:nth-child(n + 33):nth-child(-n + 40):nth-child(even),
+.papan div:nth-child(n + 41):nth-child(-n + 48):nth-child(odd),
+.papan div:nth-child(n + 49):nth-child(-n + 56):nth-child(even),
+.papan div:nth-child(n + 57):nth-child(-n + 64):nth-child(odd) {
+    background-color: rgb(173,189,143);
+}
+/*
+.papan div:hover {
+    background-color: white;
+}
+
+.papan div:nth-child(-n + 8):nth-child(even):hover,
+.papan div:nth-child(n + 8):nth-child(-n + 16):nth-child(odd):hover,
+.papan div:nth-child(n + 17):nth-child(-n + 24):nth-child(even):hover,
+.papan div:nth-child(n + 25):nth-child(-n + 32):nth-child(odd):hover,
+.papan div:nth-child(n + 33):nth-child(-n + 40):nth-child(even):hover,
+.papan div:nth-child(n + 41):nth-child(-n + 48):nth-child(odd):hover,
+.papan div:nth-child(n + 49):nth-child(-n + 56):nth-child(even):hover,
+.papan div:nth-child(n + 57):nth-child(-n + 64):nth-child(odd):hover {
+    background-color: black;
+}*/
