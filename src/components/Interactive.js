@@ -7,14 +7,17 @@ const Interactive = () => {
     let curArray = null;
     let setCurArray = null;
 
+    let curBoard = null;
+    let setCurBoard = null;
+
     const onChildMountSort = (dataFromChild) => {
         curArray = dataFromChild[0];
         setCurArray = dataFromChild[1];
       };
 
       const onChildMountChess = (dataFromChild) => {
-        curArray = dataFromChild[0];
-        setCurArray = dataFromChild[1];
+        curBoard = dataFromChild[0];
+        setCurBoard = dataFromChild[1];
       };
 
     
