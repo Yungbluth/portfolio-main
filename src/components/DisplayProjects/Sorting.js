@@ -78,9 +78,15 @@ const Sorting = function ({onMountSort}) {
     document.getElementById("sortButton").disabled = false;
     document.getElementById("dropdownSort").disabled = false;
     document.getElementById("sizeArraySlider").disabled = false;
-    document.getElementById("Sorting").inert = false;
-    document.getElementById("Chess").inert = false;
-    document.getElementById("Tab 3").inert = false;
+    if (document.getElementById("Sorting") != null && document.getElementById("Sorting") != undefined) {
+      document.getElementById("Sorting").inert = false;
+    }
+    if (document.getElementById("Chess") != null && document.getElementById("Chess") != undefined) {
+      document.getElementById("Chess").inert = false;
+    }
+    if (document.getElementById("Tab 3") != null && document.getElementById("Tab 3") != undefined) {
+      document.getElementById("Tab 3").inert = false;
+    }
   }
 
   //Bubble sort
@@ -409,9 +415,15 @@ const Sorting = function ({onMountSort}) {
     document.getElementById("sortButton").disabled = true;
     document.getElementById("dropdownSort").disabled = true;
     document.getElementById("sizeArraySlider").disabled = true;
-    document.getElementById("Sorting").inert = true;
-    document.getElementById("Chess").inert = true;
-    document.getElementById("Tab 3").inert = true;
+    if (document.getElementById("Sorting") != null && document.getElementById("Sorting") != undefined) {
+      document.getElementById("Sorting").inert = true;
+    }
+    if (document.getElementById("Chess") != null && document.getElementById("Chess") != undefined) {
+      document.getElementById("Chess").inert = true;
+    }
+    if (document.getElementById("Tab 3") != null && document.getElementById("Tab 3") != undefined) {
+      document.getElementById("Tab 3").inert = true;
+    }
     switch(curAlgo) {
       case "Bubble Sort": bubbleSort();
       break;

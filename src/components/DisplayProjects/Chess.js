@@ -19,8 +19,8 @@ const Chess = function ({onMountChess}) {
     let boxWidth = Math.min(document.documentElement.clientWidth * 0.8 - 60, document.documentElement.clientHeight * 0.8 - 60);
     let boxHeight = boxWidth.valueOf();
     let curHighlighted = [];
+    let curPossibleMoves = [];
 
-        //0 is player, 1 is ai
         /*
         pieces:
         1: pawn
@@ -95,9 +95,17 @@ const Chess = function ({onMountChess}) {
         document.getElementById(pieceFrom).children[0].style="transform: none; display: auto;";
         if (isValidMove(pieceMoved, pieceFrom, curTile)) {
             console.log("yes");
+            console.log(pieceFrom);
+            console.log(curTile);
             newBoard[pieceFrom[0]][pieceFrom[1]] = 0;
             newBoard[curTile[0]][curTile[1]] = pieceMoved;
             curHighlighted[0].style.backgroundColor = "";
+            for (let i = 0; i < curPossibleMoves.length; i++) {
+                if (curPossibleMoves[i].parentElement) {
+                    curPossibleMoves[i].parentElement.removeChild(curPossibleMoves[i]);
+                }
+            }
+            curPossibleMoves = [];
             setCurBoard(newBoard);
         } else {
             //not valid move, go back to original square
@@ -123,7 +131,7 @@ const Chess = function ({onMountChess}) {
         switch(piece.piece) {
             case 1: 
                 //pawn, can move 1 forward, or 2 if it is on the 7th row
-                if (deltaX > 0) {
+                if (deltaX != 0) {
                     return false
                 }
                 if (deltaY == 1) {
@@ -222,11 +230,6 @@ const Chess = function ({onMountChess}) {
                         yOffset = 0;
                     }
                     if (curBoard[Number(toIndex[0])+yOffset][Number(toIndex[1])+xOffset] != 0) {
-                        console.log(yOffset);
-                        console.log(xOffset);
-                        console.log(Number(toIndex[0])+yOffset);
-                        console.log(Number(toIndex[1])+xOffset);
-                        console.log(curBoard[Number(toIndex[0])+yOffset][Number(toIndex[1])+xOffset]);
                         return false
                     }
                 }
@@ -253,6 +256,14 @@ const Chess = function ({onMountChess}) {
 
     function activateTile(e, isDrag) {
         let tileID = e.target.parentElement.id;
+        for (let i = 0; i < curPossibleMoves.length; i++) {
+            if (curPossibleMoves[i].parentElement) {
+                console.log(curPossibleMoves[i].parentElement.children);
+                console.log(curPossibleMoves[i]);
+                curPossibleMoves[i].parentElement.removeChild(curPossibleMoves[i]);
+            }
+        }
+        curPossibleMoves = [];
         if (tileID !== ""){
             let curTile = document.getElementById(tileID);
             let sameTile = curTile == curHighlighted[0];
@@ -277,6 +288,31 @@ const Chess = function ({onMountChess}) {
             }
             
             curHighlighted[0] = curTile;
+
+            //shows possible moves
+            let movedFrom = e.target.parentElement.id;
+            for (let i = 0; i < curBoard.length; i++) {
+                for (let j = 0; j < curBoard.length; j++) {
+                    if (isValidMove(curBoard[movedFrom[0]][movedFrom[1]], movedFrom, String(i)+j)) {
+                        //document.getElementById(String(i)+j).style.backgroundColor = "red";
+                        //curPossibleMoves.push(String(i)+j);
+                        let parentNode = document.getElementById(String(i)+j);
+                        let smallCircle = document.createElement("div");
+                        smallCircle.style.backgroundColor = "red";
+                        console.log(parentNode.offsetHeight);
+                        smallCircle.style.height = parentNode.offsetHeight + "px";
+                        smallCircle.style.width = parentNode.offsetWidth + "px";
+                        smallCircle.style.position = "absolute";
+                        smallCircle.style.pointerEvents = "none";
+                        smallCircle.style.left = parentNode.offsetLeft + "px";
+                        smallCircle.style.top = parentNode.offsetTop + "px";
+                        //smallCircle.style.opacity = "1";
+                        document.getElementById(String(i)+j).appendChild(smallCircle);
+                        console.log(document.getElementById(String(i)+j));
+                        curPossibleMoves.push(smallCircle);
+                    }
+                }
+            }
         }
     }
 
