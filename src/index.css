@@ -799,3 +799,10 @@ strong {
     background-color: rgb(244,246,142);
     background-color: red;
 }*/
+
+#possibleSmallCircle {
+  border-radius: 100%; 
+  opacity: 20%; 
+  position: absolute; 
+  pointer-events: none;
+}

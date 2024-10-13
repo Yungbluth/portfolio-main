@@ -12,14 +12,32 @@ import blackKnight from "./ChessImages/black/knight.png"
 import blackQueen from "./ChessImages/black/queen.png"
 import blackRook from "./ChessImages/black/rook.png"
 import transparent from "./ChessImages/blank.png"
-
-
+import { useWorker } from "@koale/useworker";
 
 const Chess = function ({onMountChess}) {
+    //const numbers = [...Array(5000000)].map(e => ~~(Math.random() * 1000000));
+    const sortNumbers = () => {
+        let abcNum = 0;
+        for (let i = 0; i < 100000; i++) {
+            for (let j = 0; j < 100000; j++) {
+                abcNum = abcNum + 1;
+            }
+        }
+        return abcNum;
+    };
+    const [sortWorker] = useWorker(sortNumbers);
+
+
+    const runSort = async () => {
+        const result = await sortWorker(); // non-blocking UI
+        allowMove();
+        console.log(result);
+    };
     let boxWidth = Math.min(document.documentElement.clientWidth * 0.8 - 60, document.documentElement.clientHeight * 0.8 - 60);
     let boxHeight = boxWidth.valueOf();
     let curHighlighted = [];
     let curPossibleMoves = [];
+    var moveAllowed;
 
         /*
         pieces:
@@ -33,11 +51,34 @@ const Chess = function ({onMountChess}) {
 
     const [playerColor, setPlayerColor] = useState(Math.round(Math.random()));
     const [curBoard, setCurBoard] = useState(setupBoard);
+    const [playerTurn, setPlayerTurn] = useState(true);
     let pieces = [["", whitePawn, whiteRook, whiteKnight, whiteBishop, whiteQueen, whiteKing], ["", blackPawn, blackRook, blackKnight, blackBishop, blackQueen, blackKing]];
     
     useEffect(() => {
         onMountChess([curBoard, setCurBoard]);
       }, [onMountChess, curBoard]);
+
+
+    function allowMove() {
+            for (let i = 0; i < curBoard.length; i++) {
+                for (let j = 0; j < curBoard[i].length; j++) {
+                    let curTile = document.getElementById(String(i)+j);
+                    for (let h = 0; h < curTile.children.length; h++) {
+                        if (curTile.children[h].id == "possibleSmallCircle"){
+                            curTile.removeChild(curTile.children[h]);
+                        }
+                    }
+                    if (curTile.style.backgroundColor != "") {
+                        curTile.style.backgroundColor = "";
+                    }
+                }
+            }
+        setPlayerTurn(true);
+    }
+    
+    function stopMove() {
+        setPlayerTurn(false);
+    }
 
     function setupBoard() {
         let aiColor = Math.abs(playerColor-1);
@@ -73,9 +114,9 @@ const Chess = function ({onMountChess}) {
 
     function getImage(pieceObj) {
         if (pieceObj === 0 || pieceObj === undefined) {
-            return (<img src ={transparent} onClick={activateTile} draggable="false" style={{opacity: 0}} onDragOver={allowDrop} onDrop={endDrag}></img>);
+            return (<img src ={transparent} onClick={clickTile} draggable="false" style={{opacity: 0}} onDragOver={allowDrop} onDrop={endDrag}></img>);
         }
-        return(<img src={pieces[pieceObj.player][pieceObj.piece]} draggable="true" onClick={activateTile} onDragStart={testDrag} onDragOver={allowDrop} onDrop={endDrag} onDragEnd={oobHelper}></img>);
+        return(<img src={pieces[pieceObj.player][pieceObj.piece]} draggable="true" onClick={clickTile} onDragStart={testDrag} onDragOver={allowDrop} onDrop={endDrag} onDragEnd={oobHelper} id="piece"></img>);
     }
 
     function allowDrop(e) {
@@ -92,27 +133,56 @@ const Chess = function ({onMountChess}) {
         let pieceMoved = curBoard[pieceFrom[0]][pieceFrom[1]];
         let curTile = e.target.parentElement.id;
         let newBoard = curBoard.slice();
+        movePiece(pieceFrom, curTile, pieceMoved, newBoard);
+    }
+
+    function clickTile(e) {
+        let curTile = e.target.parentElement.id;
+        if (curBoard[curTile[0]][curTile[1]] == 0) {
+            //Empty tile
+            if (curHighlighted.length > 0) {
+                let pieceFrom = curHighlighted[0].id;
+                let pieceMoved = curBoard[pieceFrom[0]][pieceFrom[1]];
+                let newBoard = curBoard.slice();
+                if (!movePiece(pieceFrom, curTile, pieceMoved, newBoard)) {
+                    activateTile(pieceFrom, false);
+                    curHighlighted = [];
+                    curPossibleMoves = [];
+                }
+            }
+        } else {
+            //Not empty
+            activateTile(curTile, false);
+        }
+    }
+
+    function movePiece(pieceFrom, curTile, pieceMoved, newBoard) {
         document.getElementById(pieceFrom).children[0].style="transform: none; display: auto;";
-        if (isValidMove(pieceMoved, pieceFrom, curTile)) {
-            console.log("yes");
-            console.log(pieceFrom);
-            console.log(curTile);
-            newBoard[pieceFrom[0]][pieceFrom[1]] = 0;
-            newBoard[curTile[0]][curTile[1]] = pieceMoved;
+        if (isValidMove(pieceMoved, pieceFrom, curTile) && curHighlighted[0].style.backgroundColor != "") {
+            //valid move
             curHighlighted[0].style.backgroundColor = "";
+            
             for (let i = 0; i < curPossibleMoves.length; i++) {
                 if (curPossibleMoves[i].parentElement) {
                     curPossibleMoves[i].parentElement.removeChild(curPossibleMoves[i]);
                 }
             }
-            curPossibleMoves = [];
-            setCurBoard(newBoard);
+            //curPossibleMoves = [];
+            if (playerTurn){
+                newBoard[pieceFrom[0]][pieceFrom[1]] = 0;
+                newBoard[curTile[0]][curTile[1]] = pieceMoved;
+                stopMove();
+                runSort();
+                setCurBoard(newBoard);
+                console.log("got here");
+            }
+            return true;
         } else {
             //not valid move, go back to original square
-            console.log("no");
             let oldPiece = document.getElementById(pieceFrom);
             let oldChild = oldPiece.children[0];
             oldChild.style = "display: block;";
+            return false;
         }
     }
 
@@ -245,8 +315,9 @@ const Chess = function ({onMountChess}) {
     }
 
     function testDrag(e){
+        //e.target.parentElement.style = "cursor: move !important;";
         e.dataTransfer.setData("fromIndex", e.target.parentElement.id);
-        activateTile(e, true);
+        activateTile(e.target.parentElement.id, true);
         e.target.style = "transform: translate(0,0);";
         e.dataTransfer.setDragImage(e.target, e.target.width/2,e.target.height/2);
         setTimeout(() => {
@@ -254,16 +325,15 @@ const Chess = function ({onMountChess}) {
         }, 0);
     }
 
-    function activateTile(e, isDrag) {
-        let tileID = e.target.parentElement.id;
+    function activateTile(tileID, isDrag) {
+        //let tileID = e.target.parentElement.id;
+        
         for (let i = 0; i < curPossibleMoves.length; i++) {
             if (curPossibleMoves[i].parentElement) {
-                console.log(curPossibleMoves[i].parentElement.children);
-                console.log(curPossibleMoves[i]);
                 curPossibleMoves[i].parentElement.removeChild(curPossibleMoves[i]);
             }
         }
-        curPossibleMoves = [];
+        //curPossibleMoves = [];
         if (tileID !== ""){
             let curTile = document.getElementById(tileID);
             let sameTile = curTile == curHighlighted[0];
@@ -290,26 +360,31 @@ const Chess = function ({onMountChess}) {
             curHighlighted[0] = curTile;
 
             //shows possible moves
-            let movedFrom = e.target.parentElement.id;
-            for (let i = 0; i < curBoard.length; i++) {
-                for (let j = 0; j < curBoard.length; j++) {
-                    if (isValidMove(curBoard[movedFrom[0]][movedFrom[1]], movedFrom, String(i)+j)) {
-                        //document.getElementById(String(i)+j).style.backgroundColor = "red";
-                        //curPossibleMoves.push(String(i)+j);
-                        let parentNode = document.getElementById(String(i)+j);
-                        let smallCircle = document.createElement("div");
-                        smallCircle.style.backgroundColor = "red";
-                        console.log(parentNode.offsetHeight);
-                        smallCircle.style.height = parentNode.offsetHeight + "px";
-                        smallCircle.style.width = parentNode.offsetWidth + "px";
-                        smallCircle.style.position = "absolute";
-                        smallCircle.style.pointerEvents = "none";
-                        smallCircle.style.left = parentNode.offsetLeft + "px";
-                        smallCircle.style.top = parentNode.offsetTop + "px";
-                        //smallCircle.style.opacity = "1";
-                        document.getElementById(String(i)+j).appendChild(smallCircle);
-                        console.log(document.getElementById(String(i)+j));
-                        curPossibleMoves.push(smallCircle);
+            if (colorChange != "") {
+                for (let i = 0; i < curBoard.length; i++) {
+                    for (let j = 0; j < curBoard.length; j++) {
+                        if (isValidMove(curBoard[tileID[0]][tileID[1]], tileID, String(i)+j)) {
+                            let parentNode = document.getElementById(String(i)+j);
+                            let smallCircle = document.createElement("div");
+                            smallCircle.style.height = parentNode.offsetHeight/3 + "px";
+                            smallCircle.style.width = parentNode.offsetWidth/3 + "px";
+                            smallCircle.style.left = parentNode.offsetLeft + parentNode.offsetHeight/3 + "px";
+                            smallCircle.style.top = parentNode.offsetTop + parentNode.offsetWidth/3 + "px";
+                            if (document.getElementById(String(i)+j).children[0].id == "piece") {
+                                smallCircle.style.height = parentNode.offsetHeight + "px";
+                                smallCircle.style.width = parentNode.offsetWidth + "px";
+                                smallCircle.style.left = parentNode.offsetLeft + "px";
+                                smallCircle.style.top = parentNode.offsetTop + "px";
+                                smallCircle.style.border = "8px solid black";
+                                smallCircle.style.background = "rgba(0,0,0,0.2)";
+                            } else {
+                                smallCircle.style.backgroundColor = "black";
+                            }
+                            smallCircle.id = "possibleSmallCircle";
+                            smallCircle.className = "possibleSmallCircle";
+                            document.getElementById(String(i)+j).appendChild(smallCircle);
+                            curPossibleMoves.push(smallCircle);
+                        }
                     }
                 }
             }
