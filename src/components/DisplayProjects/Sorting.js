@@ -78,13 +78,13 @@ const Sorting = function ({onMountSort}) {
     document.getElementById("sortButton").disabled = false;
     document.getElementById("dropdownSort").disabled = false;
     document.getElementById("sizeArraySlider").disabled = false;
-    if (document.getElementById("Sorting") != null && document.getElementById("Sorting") != undefined) {
+    if (document.getElementById("Sorting") !== null && document.getElementById("Sorting") !== undefined) {
       document.getElementById("Sorting").inert = false;
     }
-    if (document.getElementById("Chess") != null && document.getElementById("Chess") != undefined) {
+    if (document.getElementById("Chess") !== null && document.getElementById("Chess") !== undefined) {
       document.getElementById("Chess").inert = false;
     }
-    if (document.getElementById("Tab 3") != null && document.getElementById("Tab 3") != undefined) {
+    if (document.getElementById("Tab 3") !== null && document.getElementById("Tab 3") !== undefined) {
       document.getElementById("Tab 3").inert = false;
     }
   }
@@ -415,13 +415,13 @@ const Sorting = function ({onMountSort}) {
     document.getElementById("sortButton").disabled = true;
     document.getElementById("dropdownSort").disabled = true;
     document.getElementById("sizeArraySlider").disabled = true;
-    if (document.getElementById("Sorting") != null && document.getElementById("Sorting") != undefined) {
+    if (document.getElementById("Sorting") !== null && document.getElementById("Sorting") !== undefined) {
       document.getElementById("Sorting").inert = true;
     }
-    if (document.getElementById("Chess") != null && document.getElementById("Chess") != undefined) {
+    if (document.getElementById("Chess") !== null && document.getElementById("Chess") !== undefined) {
       document.getElementById("Chess").inert = true;
     }
-    if (document.getElementById("Tab 3") != null && document.getElementById("Tab 3") != undefined) {
+    if (document.getElementById("Tab 3") !== null && document.getElementById("Tab 3") !== undefined) {
       document.getElementById("Tab 3").inert = true;
     }
     switch(curAlgo) {

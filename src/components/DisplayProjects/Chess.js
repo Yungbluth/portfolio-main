@@ -13,31 +13,16 @@ import blackQueen from "./ChessImages/black/queen.png"
 import blackRook from "./ChessImages/black/rook.png"
 import transparent from "./ChessImages/blank.png"
 import { useWorker } from "@koale/useworker";
+import ChessAi from "./ChessAi";
 
 const Chess = function ({onMountChess}) {
-    //const numbers = [...Array(5000000)].map(e => ~~(Math.random() * 1000000));
-    const sortNumbers = () => {
-        let abcNum = 0;
-        for (let i = 0; i < 100000; i++) {
-            for (let j = 0; j < 100000; j++) {
-                abcNum = abcNum + 1;
-            }
-        }
-        return abcNum;
-    };
-    const [sortWorker] = useWorker(sortNumbers);
 
+    const [sortWorker] = useWorker(ChessAi);
 
-    const runSort = async () => {
-        const result = await sortWorker(); // non-blocking UI
-        allowMove();
-        console.log(result);
-    };
     let boxWidth = Math.min(document.documentElement.clientWidth * 0.8 - 60, document.documentElement.clientHeight * 0.8 - 60);
     let boxHeight = boxWidth.valueOf();
     let curHighlighted = [];
     let curPossibleMoves = [];
-    var moveAllowed;
 
         /*
         pieces:
@@ -49,7 +34,7 @@ const Chess = function ({onMountChess}) {
         6: king
         */
 
-    const [playerColor, setPlayerColor] = useState(Math.round(Math.random()));
+    const [playerColor] = useState(Math.round(Math.random()));
     const [curBoard, setCurBoard] = useState(setupBoard);
     const [playerTurn, setPlayerTurn] = useState(true);
     let pieces = [["", whitePawn, whiteRook, whiteKnight, whiteBishop, whiteQueen, whiteKing], ["", blackPawn, blackRook, blackKnight, blackBishop, blackQueen, blackKing]];
@@ -58,17 +43,23 @@ const Chess = function ({onMountChess}) {
         onMountChess([curBoard, setCurBoard]);
       }, [onMountChess, curBoard]);
 
+      const onWorkerSortClick = () => {
+        sortWorker(0).then(result => {
+            console.log(result);
+            allowMove();
+        });
+      };
 
     function allowMove() {
             for (let i = 0; i < curBoard.length; i++) {
                 for (let j = 0; j < curBoard[i].length; j++) {
                     let curTile = document.getElementById(String(i)+j);
                     for (let h = 0; h < curTile.children.length; h++) {
-                        if (curTile.children[h].id == "possibleSmallCircle"){
+                        if (curTile.children[h].id === "possibleSmallCircle"){
                             curTile.removeChild(curTile.children[h]);
                         }
                     }
-                    if (curTile.style.backgroundColor != "") {
+                    if (curTile.style.backgroundColor !== "") {
                         curTile.style.backgroundColor = "";
                     }
                 }
@@ -96,7 +87,7 @@ const Chess = function ({onMountChess}) {
             freshBoard[1].push({player: aiColor, piece: 1});
             freshBoard[6].push({player: playerColor, piece: 1});
         }
-        if (playerColor == 1) {
+        if (playerColor === 1) {
             let temp = freshBoard[0][3];
             freshBoard[0][3] = freshBoard[0][4];
             freshBoard[0][4] = temp;
@@ -107,16 +98,12 @@ const Chess = function ({onMountChess}) {
         }
         return freshBoard;
     }
-    /*
-    if (curBoard[0][0] === undefined) {
-        setupBoard();
-    }*/
 
     function getImage(pieceObj) {
         if (pieceObj === 0 || pieceObj === undefined) {
-            return (<img src ={transparent} onClick={clickTile} draggable="false" style={{opacity: 0}} onDragOver={allowDrop} onDrop={endDrag}></img>);
+            return (<img src ={transparent} onClick={clickTile} draggable="false" style={{opacity: 0}} onDragOver={allowDrop} onDrop={endDrag} alt="Empty"></img>);
         }
-        return(<img src={pieces[pieceObj.player][pieceObj.piece]} draggable="true" onClick={clickTile} onDragStart={testDrag} onDragOver={allowDrop} onDrop={endDrag} onDragEnd={oobHelper} id="piece"></img>);
+        return(<img src={pieces[pieceObj.player][pieceObj.piece]} draggable="true" onClick={clickTile} onDragStart={testDrag} onDragOver={allowDrop} onDrop={endDrag} onDragEnd={oobHelper} id="piece" alt="Piece"></img>);
     }
 
     function allowDrop(e) {
@@ -138,7 +125,7 @@ const Chess = function ({onMountChess}) {
 
     function clickTile(e) {
         let curTile = e.target.parentElement.id;
-        if (curBoard[curTile[0]][curTile[1]] == 0) {
+        if (curBoard[curTile[0]][curTile[1]] === 0 || curBoard[curTile[0]][curTile[1]].player !== playerColor) {
             //Empty tile
             if (curHighlighted.length > 0) {
                 let pieceFrom = curHighlighted[0].id;
@@ -157,8 +144,11 @@ const Chess = function ({onMountChess}) {
     }
 
     function movePiece(pieceFrom, curTile, pieceMoved, newBoard) {
+        if (curHighlighted.length === 0) {
+            return false
+        }
         document.getElementById(pieceFrom).children[0].style="transform: none; display: auto;";
-        if (isValidMove(pieceMoved, pieceFrom, curTile) && curHighlighted[0].style.backgroundColor != "") {
+        if (isValidMove(pieceMoved, pieceFrom, curTile) && curHighlighted[0].style.backgroundColor !== "") {
             //valid move
             curHighlighted[0].style.backgroundColor = "";
             
@@ -167,14 +157,12 @@ const Chess = function ({onMountChess}) {
                     curPossibleMoves[i].parentElement.removeChild(curPossibleMoves[i]);
                 }
             }
-            //curPossibleMoves = [];
             if (playerTurn){
                 newBoard[pieceFrom[0]][pieceFrom[1]] = 0;
                 newBoard[curTile[0]][curTile[1]] = pieceMoved;
                 stopMove();
-                runSort();
+                onWorkerSortClick();
                 setCurBoard(newBoard);
-                console.log("got here");
             }
             return true;
         } else {
@@ -187,12 +175,12 @@ const Chess = function ({onMountChess}) {
     }
 
     function isValidMove(piece, fromIndex, toIndex) {
-        if (piece.player != playerColor) {
+        if (piece.player !== playerColor) {
             //not your piece!
             return false
         }
-        if (curBoard[toIndex[0]][toIndex[1]] != 0) {
-            if (curBoard[toIndex[0]][toIndex[1]].player == playerColor) {
+        if (curBoard[toIndex[0]][toIndex[1]] !== 0) {
+            if (curBoard[toIndex[0]][toIndex[1]].player === playerColor) {
                 return false;
             }
         }
@@ -201,41 +189,41 @@ const Chess = function ({onMountChess}) {
         switch(piece.piece) {
             case 1: 
                 //pawn, can move 1 forward, or 2 if it is on the 7th row
-                if (deltaX != 0) {
+                if (deltaX !== 0) {
                     return false
                 }
-                if (deltaY == 1) {
+                if (deltaY === 1) {
                     return true
                 }
-                if (fromIndex[0] == 6 && deltaY == 2) {
-                    return (curBoard[Number(toIndex[0])+1][toIndex[1]] == 0)
+                if (Number(fromIndex[0]) === 6 && deltaY === 2) {
+                    return (curBoard[Number(toIndex[0])+1][toIndex[1]] === 0)
                 }
                 return false
             case 2:
                 //rook, can move any amount in a straight line
                 //One and only one of deltaX/deltaY must be 0
-                if (deltaX != 0 && deltaY != 0) {
+                if (deltaX !== 0 && deltaY !== 0) {
                     return false
                 }
                 let distance = deltaX + deltaY;
                 for (let i = 1; i < Math.abs(distance); i++) {
                     let xOffset = i;
                     let yOffset = i;
-                    if (deltaX == 0) {
+                    if (deltaX === 0) {
                         xOffset = 0;
                     } else {
                         if (deltaX < 0) {
                             xOffset = -i;
                         }
                     }
-                    if (deltaY == 0) {
+                    if (deltaY === 0) {
                         yOffset = 0;
                     } else {
                         if (deltaY < 0) {
                             yOffset = -i;
                         }
                     }
-                    if (curBoard[Number(toIndex[0])+yOffset][Number(toIndex[1])+xOffset] != 0) {
+                    if (curBoard[Number(toIndex[0])+yOffset][Number(toIndex[1])+xOffset] !== 0) {
                         return false
                     }
                 }
@@ -245,12 +233,12 @@ const Chess = function ({onMountChess}) {
                 //deltax +- 2 and deltay +- 1 OR deltax +- 1 and deltay +- 2
                 let xMoveKnight = Math.abs(deltaX);
                 let yMoveKnight = Math.abs(deltaY);
-                return ((xMoveKnight == 2 && yMoveKnight == 1) || (xMoveKnight == 1 && yMoveKnight == 2))
+                return ((xMoveKnight === 2 && yMoveKnight === 1) || (xMoveKnight === 1 && yMoveKnight === 2))
             case 4:
                 //bishop, moves diagonal
                 let xMoveBishop = Math.abs(deltaX);
                 let yMoveBishop = Math.abs(deltaY);
-                if (xMoveBishop != yMoveBishop) {
+                if (xMoveBishop !== yMoveBishop) {
                     return false
                 }
                 for (let i = 1; i < xMoveBishop; i++) {
@@ -262,13 +250,13 @@ const Chess = function ({onMountChess}) {
                     if (deltaY < 0) {
                         yOffset = -i;
                     }
-                    if (deltaX == 0) {
+                    if (deltaX === 0) {
                         xOffset = 0;
                     }
-                    if (deltaY == 0) {
+                    if (deltaY === 0) {
                         yOffset = 0;
                     }
-                    if (curBoard[Number(toIndex[0])+yOffset][Number(toIndex[1])+xOffset] != 0) {
+                    if (curBoard[Number(toIndex[0])+yOffset][Number(toIndex[1])+xOffset] !== 0) {
                         return false
                     }
                 }
@@ -277,11 +265,11 @@ const Chess = function ({onMountChess}) {
                 //queen, moves like rook or bishop
                 let xMoveQueen = Math.abs(deltaX);
                 let yMoveQueen = Math.abs(deltaY);
-                if (xMoveQueen != yMoveQueen && deltaX != 0 && deltaY != 0) {
+                if (xMoveQueen !== yMoveQueen && deltaX !== 0 && deltaY !== 0) {
                     return false
                 }
                 let queenDistance = xMoveQueen;
-                if (xMoveQueen == 0 || yMoveQueen == 0) {
+                if (xMoveQueen === 0 || yMoveQueen === 0) {
                     queenDistance = xMoveQueen + yMoveQueen;
                 }
                 for (let i = 1; i < queenDistance; i++) {
@@ -293,13 +281,13 @@ const Chess = function ({onMountChess}) {
                     if (deltaY < 0) {
                         yOffset = -i;
                     }
-                    if (deltaX == 0) {
+                    if (deltaX === 0) {
                         xOffset = 0;
                     }
-                    if (deltaY == 0) {
+                    if (deltaY === 0) {
                         yOffset = 0;
                     }
-                    if (curBoard[Number(toIndex[0])+yOffset][Number(toIndex[1])+xOffset] != 0) {
+                    if (curBoard[Number(toIndex[0])+yOffset][Number(toIndex[1])+xOffset] !== 0) {
                         return false
                     }
                 }
@@ -315,7 +303,6 @@ const Chess = function ({onMountChess}) {
     }
 
     function testDrag(e){
-        //e.target.parentElement.style = "cursor: move !important;";
         e.dataTransfer.setData("fromIndex", e.target.parentElement.id);
         activateTile(e.target.parentElement.id, true);
         e.target.style = "transform: translate(0,0);";
@@ -325,27 +312,24 @@ const Chess = function ({onMountChess}) {
         }, 0);
     }
 
-    function activateTile(tileID, isDrag) {
-        //let tileID = e.target.parentElement.id;
-        
+    function activateTile(tileID, isDrag) {       
         for (let i = 0; i < curPossibleMoves.length; i++) {
             if (curPossibleMoves[i].parentElement) {
                 curPossibleMoves[i].parentElement.removeChild(curPossibleMoves[i]);
             }
         }
-        //curPossibleMoves = [];
-        if (tileID !== ""){
+        if (String(tileID) !== ""){
             let curTile = document.getElementById(tileID);
-            let sameTile = curTile == curHighlighted[0];
+            let sameTile = curTile === curHighlighted[0];
             var colorChange;
-            if (Math.floor(tileID / 10) % 2 == 1 != tileID % 2 == 1) {
+            if ((Math.floor(tileID / 10) % 2 === 1) !== (tileID % 2 === 1)) {
                 //white
                 colorChange = "rgb(244,246,142)";
             } else {
                 //green
                 colorChange = "rgb(184,202,80)";
             }
-            if (sameTile && curTile.style.backgroundColor != "" && !isDrag) {
+            if (sameTile && curTile.style.backgroundColor !== "" && !isDrag) {
                 colorChange = "";
             }
             
@@ -360,17 +344,13 @@ const Chess = function ({onMountChess}) {
             curHighlighted[0] = curTile;
 
             //shows possible moves
-            if (colorChange != "") {
+            if (colorChange !== "") {
                 for (let i = 0; i < curBoard.length; i++) {
                     for (let j = 0; j < curBoard.length; j++) {
                         if (isValidMove(curBoard[tileID[0]][tileID[1]], tileID, String(i)+j)) {
                             let parentNode = document.getElementById(String(i)+j);
                             let smallCircle = document.createElement("div");
-                            smallCircle.style.height = parentNode.offsetHeight/3 + "px";
-                            smallCircle.style.width = parentNode.offsetWidth/3 + "px";
-                            smallCircle.style.left = parentNode.offsetLeft + parentNode.offsetHeight/3 + "px";
-                            smallCircle.style.top = parentNode.offsetTop + parentNode.offsetWidth/3 + "px";
-                            if (document.getElementById(String(i)+j).children[0].id == "piece") {
+                            if (document.getElementById(String(i)+j).children[0].id === "piece") {
                                 smallCircle.style.height = parentNode.offsetHeight + "px";
                                 smallCircle.style.width = parentNode.offsetWidth + "px";
                                 smallCircle.style.left = parentNode.offsetLeft + "px";
@@ -378,6 +358,10 @@ const Chess = function ({onMountChess}) {
                                 smallCircle.style.border = "8px solid black";
                                 smallCircle.style.background = "rgba(0,0,0,0.2)";
                             } else {
+                                smallCircle.style.height = parentNode.offsetHeight/3 + "px";
+                                smallCircle.style.width = parentNode.offsetWidth/3 + "px";
+                                smallCircle.style.left = parentNode.offsetLeft + parentNode.offsetHeight/3 + "px";
+                                smallCircle.style.top = parentNode.offsetTop + parentNode.offsetWidth/3 + "px";
                                 smallCircle.style.backgroundColor = "black";
                             }
                             smallCircle.id = "possibleSmallCircle";
