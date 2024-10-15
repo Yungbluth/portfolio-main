@@ -44,8 +44,9 @@ const Chess = function ({onMountChess}) {
       }, [onMountChess, curBoard]);
 
       const onWorkerSortClick = () => {
-        sortWorker(0).then(result => {
+        sortWorker(curBoard, playerColor).then(result => {
             console.log(result);
+            setCurBoard(result);
             allowMove();
         });
       };
