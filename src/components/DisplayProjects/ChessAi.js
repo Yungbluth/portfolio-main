@@ -19,6 +19,8 @@ Extra Multi Threading for searching?
 
 const ChessAi = (curBoard, playerColor, specialConditions) => {
 
+    let depth = 4;
+
     const pawnPositionTable = [
         [0,  0,  0,  0,  0,  0,  0,  0],
         [5, 10, 10,-20,-20, 10, 10,  5],
@@ -144,7 +146,7 @@ const ChessAi = (curBoard, playerColor, specialConditions) => {
                     if (possibleBoard[i][j].player === possiblePlayer) {
                         for (let a = 0; a < 8; a++) {
                             for (let b = 0; b < 8; b++) {
-                                if (isValidMove(possibleBoard[i][j], String(i)+j, String(a)+b, possibleBoard)) {
+                                if (isValidMove(possibleBoard[i][j], String(i)+j, String(a)+b, possibleBoard, true)) {
                                     let newPossibleBoard = [];
                                     for (let h = 0; h < 8; h++) {
                                         newPossibleBoard[h] = possibleBoard[h].slice();
@@ -159,6 +161,9 @@ const ChessAi = (curBoard, playerColor, specialConditions) => {
                                             newPossibleBoard[0][b+1] = newPossibleBoard[0][0];
                                             newPossibleBoard[0][0] = 0;
                                         }
+                                    }
+                                    if (newPossibleBoard[i][j].piece === 1 && (a === 0 || a === 7)) {
+                                        newPossibleBoard[i][j].piece = 5;
                                     }
                                     newPossibleBoard[a][b] = newPossibleBoard[i][j];
                                     newPossibleBoard[i][j] = 0;
@@ -187,7 +192,7 @@ const ChessAi = (curBoard, playerColor, specialConditions) => {
               bestMove = curMoves[i];
            }   
         }
-        if (depthleft === 4) {
+        if (depthleft === depth) {
             return bestMove;
         }
         return alpha;
@@ -206,7 +211,8 @@ const ChessAi = (curBoard, playerColor, specialConditions) => {
         return beta;
      }
 
-    function isValidMove(piece, fromIndex, toIndex, tempBoard) {
+    function isValidMove(piece, fromIndex, toIndex, tempBoard, curCheck) {
+
         if (fromIndex === toIndex) {
             return false
         }
@@ -369,7 +375,7 @@ const ChessAi = (curBoard, playerColor, specialConditions) => {
         }
     }
     //makeMove("01", "20");
-    let score = alphaBetaMax(-999999, 999999, 4, curBoard);
+    let score = alphaBetaMax(-999999, 999999, depth, curBoard);
     //let score = getPossibleMoves(curBoard, aiColor);
     return [score, evalBoardState(score)];
 };

@@ -50,6 +50,7 @@ const Chess = function ({onMountChess}) {
       const onWorkerSortClick = () => {
         sortWorker(curBoard, playerColor, specialConditions).then(resultArr => {
             let result = resultArr[0];
+            console.log(resultArr);
             let aiColor = Math.abs(playerColor-1);
             if (result[0][0] === 0 || result[0][0].player !== aiColor) {
                 if (specialConditions[2] === true) {
@@ -173,50 +174,58 @@ const Chess = function ({onMountChess}) {
             return false
         }
         document.getElementById(pieceFrom).children[0].style="transform: none; display: auto;";
-        if (isValidMove(pieceMoved, pieceFrom, curTile) && curHighlighted[0].style.backgroundColor !== "") {
-            //valid move
-            curHighlighted[0].style.backgroundColor = "";
-            
-            for (let i = 0; i < curPossibleMoves.length; i++) {
-                if (curPossibleMoves[i].parentElement) {
-                    curPossibleMoves[i].parentElement.removeChild(curPossibleMoves[i]);
-                }
-            }
-            if (playerTurn){
-                newBoard[pieceFrom[0]][pieceFrom[1]] = 0;
-                newBoard[curTile[0]][curTile[1]] = pieceMoved;
-
-                //castle conditions
-                if (pieceFrom === "70") {
-                    if (specialConditions[0] === true) {
-                        specialConditions[0] = false;
+        if (isValidMove(pieceMoved, pieceFrom, curTile, playerColor, curBoard) && curHighlighted[0].style.backgroundColor !== "") {
+            if (!kingTrouble(pieceMoved, pieceFrom, curTile, playerColor, curBoard)) {
+                //valid move
+                curHighlighted[0].style.backgroundColor = "";
+                
+                for (let i = 0; i < curPossibleMoves.length; i++) {
+                    if (curPossibleMoves[i].parentElement) {
+                        curPossibleMoves[i].parentElement.removeChild(curPossibleMoves[i]);
                     }
                 }
-                if (pieceFrom === "77") {
-                    if (specialConditions[1] === true) {
+                if (playerTurn){
+                    newBoard[pieceFrom[0]][pieceFrom[1]] = 0;
+                    newBoard[curTile[0]][curTile[1]] = pieceMoved;
+
+                    //castle conditions
+                    if (pieceFrom === "70") {
+                        if (specialConditions[0] === true) {
+                            specialConditions[0] = false;
+                        }
+                    }
+                    if (pieceFrom === "77") {
+                        if (specialConditions[1] === true) {
+                            specialConditions[1] = false;
+                        }
+                    }
+                    if (pieceMoved.piece === 6) {
+                        let deltaX = pieceFrom[1] - curTile[1];
+                        if (deltaX === 2) {
+                            newBoard[curTile[0]][Number(curTile[1])+1] = newBoard[7][0];
+                            newBoard[7][0] = 0;
+                        }
+                        if (deltaX === -2) {
+                            newBoard[curTile[0]][Number(curTile[1])-1] = newBoard[7][7];
+                            newBoard[7][7] = 0;
+                        }
+                        specialConditions[0] = false;
                         specialConditions[1] = false;
                     }
-                }
-                if (pieceMoved.piece === 6) {
-                    let deltaX = pieceFrom[1] - curTile[1];
-                    if (deltaX === 2) {
-                        newBoard[curTile[0]][Number(curTile[1])+1] = newBoard[7][0];
-                        newBoard[7][0] = 0;
+
+                    if (pieceMoved.piece === 1 && Number(curTile[0]) === 0) {
+                        pieceMoved.piece = 5;
                     }
-                    if (deltaX === -2) {
-                        newBoard[curTile[0]][Number(curTile[1])-1] = newBoard[7][7];
-                        newBoard[7][7] = 0;
-                    }
-                    specialConditions[0] = false;
-                    specialConditions[1] = false;
-                }
 
 
-                stopMove();
-                onWorkerSortClick();
-                setCurBoard(newBoard);
+                    stopMove();
+                    onWorkerSortClick();
+                    setCurBoard(newBoard);
+                }
+                return true;
+            } else {
+                //king in check!
             }
-            return true;
         } else {
             //not valid move, go back to original square
             let oldPiece = document.getElementById(pieceFrom);
@@ -226,13 +235,64 @@ const Chess = function ({onMountChess}) {
         }
     }
 
-    function isValidMove(piece, fromIndex, toIndex) {
-        if (piece.player !== playerColor) {
+    function kingTrouble(pieceMoved, pieceFrom, curTile, color, board) {
+        let tempBoard = [];
+        for (let i = 0; i < 8; i++) {
+            tempBoard[i] = board[i].slice();
+        }
+        tempBoard[pieceFrom[0]][pieceFrom[1]] = 0;
+        tempBoard[curTile[0]][curTile[1]] = pieceMoved;
+
+
+        if (pieceMoved.piece === 6) {
+            let deltaX = pieceFrom[1] - curTile[1];
+            if (deltaX === 2) {
+                tempBoard[curTile[0]][Number(curTile[1])+1] = tempBoard[7][0];
+                tempBoard[7][0] = 0;
+            }
+            if (deltaX === -2) {
+                tempBoard[curTile[0]][Number(curTile[1])-1] = tempBoard[7][7];
+                tempBoard[7][7] = 0;
+            }
+        }
+
+        if (pieceMoved.piece === 1 && Number(curTile[0]) === 0) {
+            pieceMoved.piece = 5;
+        }
+
+        let kingPos = 0;
+        for (let i = 0; i < 8; i ++) {
+            for (let j = 0; j < 8; j++) {
+                if (tempBoard[i][j] !== 0) {
+                    if (tempBoard[i][j].piece === 6 && tempBoard[i][j].player === color) {
+                        kingPos = String(i) + j;
+                    }
+                }
+            }
+        }
+
+        let oppColor = Math.abs(color-1);
+        for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 8; j++) {
+                if (tempBoard[i][j] !== 0) {
+                    if (tempBoard[i][j].player === oppColor) {
+                        if (isValidMove(tempBoard[i][j], String(i)+j, kingPos, oppColor, tempBoard)) {
+                            return true
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
+    function isValidMove(piece, fromIndex, toIndex, color, board) {
+        if (piece.player !== color) {
             //not your piece!
             return false
         }
-        if (curBoard[toIndex[0]][toIndex[1]] !== 0) {
-            if (curBoard[toIndex[0]][toIndex[1]].player === playerColor) {
+        if (board[toIndex[0]][toIndex[1]] !== 0) {
+            if (board[toIndex[0]][toIndex[1]].player === color) {
                 return false;
             }
         }
@@ -242,18 +302,20 @@ const Chess = function ({onMountChess}) {
             case 1: 
                 //pawn, can move 1 forward, or 2 if it is on the 7th row
                 let xMovePawn = Math.abs(deltaX);
+                if (color !== playerColor) {
+                    deltaY = -deltaY;
+                }
                 if (xMovePawn > 1) {
                     return false
                 }
                 if (xMovePawn === 1 && deltaY === 1) {
-                    //console.log(curBoard[toIndex[0]][toIndex[1]]);
-                    return (curBoard[toIndex[0]][toIndex[1]] !== 0)
+                    return (board[toIndex[0]][toIndex[1]] !== 0)
                 }
                 if (deltaY === 1) {
-                    return (curBoard[toIndex[0]][toIndex[1]] === 0)
+                    return (board[toIndex[0]][toIndex[1]] === 0)
                 }
                 if (Number(fromIndex[0]) === 6 && deltaY === 2 && xMovePawn === 0) {
-                    return (curBoard[Number(toIndex[0])+1][toIndex[1]] === 0 && curBoard[toIndex[0]][toIndex[1]] === 0)
+                    return (board[Number(toIndex[0])+1][toIndex[1]] === 0 && board[toIndex[0]][toIndex[1]] === 0)
                 }
                 return false
             case 2:
@@ -280,7 +342,7 @@ const Chess = function ({onMountChess}) {
                             yOffset = -i;
                         }
                     }
-                    if (curBoard[Number(toIndex[0])+yOffset][Number(toIndex[1])+xOffset] !== 0) {
+                    if (board[Number(toIndex[0])+yOffset][Number(toIndex[1])+xOffset] !== 0) {
                         return false
                     }
                 }
@@ -313,7 +375,7 @@ const Chess = function ({onMountChess}) {
                     if (deltaY === 0) {
                         yOffset = 0;
                     }
-                    if (curBoard[Number(toIndex[0])+yOffset][Number(toIndex[1])+xOffset] !== 0) {
+                    if (board[Number(toIndex[0])+yOffset][Number(toIndex[1])+xOffset] !== 0) {
                         return false
                     }
                 }
@@ -344,7 +406,7 @@ const Chess = function ({onMountChess}) {
                     if (deltaY === 0) {
                         yOffset = 0;
                     }
-                    if (curBoard[Number(toIndex[0])+yOffset][Number(toIndex[1])+xOffset] !== 0) {
+                    if (board[Number(toIndex[0])+yOffset][Number(toIndex[1])+xOffset] !== 0) {
                         return false
                     }
                 }
@@ -354,10 +416,10 @@ const Chess = function ({onMountChess}) {
                 let xMoveKing = Math.abs(deltaX);
                 let yMoveKing = Math.abs(deltaY);
                 if (deltaX === 2 && yMoveKing === 0) {
-                    return (specialConditions[0] && (curBoard[toIndex[0]][Number(toIndex[1])+1] === 0))
+                    return (specialConditions[0] && (board[toIndex[0]][Number(toIndex[1])+1] === 0))
                 }
                 if (deltaX === -2 && yMoveKing === 0) {
-                    return (specialConditions[1] && (curBoard[toIndex[0]][Number(toIndex[1])-1] === 0))
+                    return (specialConditions[1] && (board[toIndex[0]][Number(toIndex[1])-1] === 0))
                 }
                 return (xMoveKing < 2 && yMoveKing < 2)
             default:
@@ -410,27 +472,29 @@ const Chess = function ({onMountChess}) {
             if (colorChange !== "") {
                 for (let i = 0; i < curBoard.length; i++) {
                     for (let j = 0; j < curBoard.length; j++) {
-                        if (isValidMove(curBoard[tileID[0]][tileID[1]], tileID, String(i)+j)) {
-                            let parentNode = document.getElementById(String(i)+j);
-                            let smallCircle = document.createElement("div");
-                            if (document.getElementById(String(i)+j).children[0].id === "piece") {
-                                smallCircle.style.height = parentNode.offsetHeight + "px";
-                                smallCircle.style.width = parentNode.offsetWidth + "px";
-                                smallCircle.style.left = parentNode.offsetLeft + "px";
-                                smallCircle.style.top = parentNode.offsetTop + "px";
-                                smallCircle.style.border = "8px solid black";
-                                smallCircle.style.background = "rgba(0,0,0,0.2)";
-                            } else {
-                                smallCircle.style.height = parentNode.offsetHeight/3 + "px";
-                                smallCircle.style.width = parentNode.offsetWidth/3 + "px";
-                                smallCircle.style.left = parentNode.offsetLeft + parentNode.offsetHeight/3 + "px";
-                                smallCircle.style.top = parentNode.offsetTop + parentNode.offsetWidth/3 + "px";
-                                smallCircle.style.backgroundColor = "black";
+                        if (isValidMove(curBoard[tileID[0]][tileID[1]], tileID, String(i)+j, playerColor, curBoard)) {
+                            if (!kingTrouble(curBoard[tileID[0]][tileID[1]], tileID, String(i)+j, playerColor, curBoard)) {
+                                let parentNode = document.getElementById(String(i)+j);
+                                let smallCircle = document.createElement("div");
+                                if (document.getElementById(String(i)+j).children[0].id === "piece") {
+                                    smallCircle.style.height = parentNode.offsetHeight + "px";
+                                    smallCircle.style.width = parentNode.offsetWidth + "px";
+                                    smallCircle.style.left = parentNode.offsetLeft + "px";
+                                    smallCircle.style.top = parentNode.offsetTop + "px";
+                                    smallCircle.style.border = "8px solid black";
+                                    smallCircle.style.background = "rgba(0,0,0,0.2)";
+                                } else {
+                                    smallCircle.style.height = parentNode.offsetHeight/3 + "px";
+                                    smallCircle.style.width = parentNode.offsetWidth/3 + "px";
+                                    smallCircle.style.left = parentNode.offsetLeft + parentNode.offsetHeight/3 + "px";
+                                    smallCircle.style.top = parentNode.offsetTop + parentNode.offsetWidth/3 + "px";
+                                    smallCircle.style.backgroundColor = "black";
+                                }
+                                smallCircle.id = "possibleSmallCircle";
+                                smallCircle.className = "possibleSmallCircle";
+                                document.getElementById(String(i)+j).appendChild(smallCircle);
+                                curPossibleMoves.push(smallCircle);
                             }
-                            smallCircle.id = "possibleSmallCircle";
-                            smallCircle.className = "possibleSmallCircle";
-                            document.getElementById(String(i)+j).appendChild(smallCircle);
-                            curPossibleMoves.push(smallCircle);
                         }
                     }
                 }
@@ -439,7 +503,6 @@ const Chess = function ({onMountChess}) {
     }
 
 
-    console.log(curEval);
     return(<div>
         <div className="chessBoard" id="chessBoard">
         <div className="chessBoardTiles" style={{gridTemplateColumns: `repeat(8, ${boxWidth/8}px)`, gridTemplateRows: `repeat(8, ${boxHeight/8}px)`}}>
@@ -451,7 +514,7 @@ const Chess = function ({onMountChess}) {
                 ))
             ))}
         </div>
-        <div className="evalBar" style={{width: `${boxWidth/16}px`, height: `${boxHeight}px`, transform: `translate(${-4.3*boxWidth/8}px,${-boxHeight}px)`, background: `linear-gradient(to top,  dimgray 0%,dimgray ${50 - curEval/50}%,white ${50 - curEval/50}%,white 100%)`}}><span>{curEval/100}</span></div>
+        <div className="evalBar" style={{width: `${boxWidth/16}px`, height: `${boxHeight}px`, transform: `translate(${-4.3*boxWidth/8}px,${-boxHeight}px)`, color: `${playerColor === 1 ? "black" : "white"}`, background: `linear-gradient(to top,  ${playerColor === 1 ? "dimgray" : "white"} 0%, ${playerColor === 1 ? "dimgray" : "white"} ${50 - curEval/50}%, ${playerColor === 1 ? "white" : "dimgray"} ${50 - curEval/50}%, ${playerColor === 1 ? "white" : "dimgray"} 100%)`}}><span>{Math.abs(curEval/100)}</span></div>
     </div>
     </div>
     );
