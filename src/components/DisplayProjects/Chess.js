@@ -37,15 +37,39 @@ const Chess = function ({onMountChess}) {
     const [playerColor] = useState(Math.round(Math.random()));
     const [curBoard, setCurBoard] = useState(setupBoard);
     const [playerTurn, setPlayerTurn] = useState(true);
+    const [curEval, setCurEval] = useState(0);
+
+    //Castling rights for player left right, ai left right and En Passant column for player, ai
+    const [specialConditions, setSpecialConditions] = useState([true, true, true, true, -1, -1])
     let pieces = [["", whitePawn, whiteRook, whiteKnight, whiteBishop, whiteQueen, whiteKing], ["", blackPawn, blackRook, blackKnight, blackBishop, blackQueen, blackKing]];
-    
+
     useEffect(() => {
         onMountChess([curBoard, setCurBoard]);
       }, [onMountChess, curBoard]);
 
       const onWorkerSortClick = () => {
-        sortWorker(curBoard, playerColor).then(result => {
-            console.log(result);
+        sortWorker(curBoard, playerColor, specialConditions).then(resultArr => {
+            let result = resultArr[0];
+            let aiColor = Math.abs(playerColor-1);
+            if (result[0][0] === 0 || result[0][0].player !== aiColor) {
+                if (specialConditions[2] === true) {
+                    specialConditions[2] = false;
+                }
+            }
+            if (result[0][7] === 0 || result[0][7].player !== aiColor) {
+                if (specialConditions[3] === true) {
+                    specialConditions[3] = false;
+                }
+            }
+            if (aiColor === 1 && (result[0][4] === 0 || result[0][4].player !== aiColor)) {
+                specialConditions[2] = false;
+                specialConditions[3] = false;
+            }
+            if (aiColor === 0 && (result[0][3] === 0 || result[0][4].player !== aiColor)) {
+                specialConditions[2] = false;
+                specialConditions[3] = false;
+            }
+            setCurEval(resultArr[1]);
             setCurBoard(result);
             allowMove();
         });
@@ -161,6 +185,33 @@ const Chess = function ({onMountChess}) {
             if (playerTurn){
                 newBoard[pieceFrom[0]][pieceFrom[1]] = 0;
                 newBoard[curTile[0]][curTile[1]] = pieceMoved;
+
+                //castle conditions
+                if (pieceFrom === "70") {
+                    if (specialConditions[0] === true) {
+                        specialConditions[0] = false;
+                    }
+                }
+                if (pieceFrom === "77") {
+                    if (specialConditions[1] === true) {
+                        specialConditions[1] = false;
+                    }
+                }
+                if (pieceMoved.piece === 6) {
+                    let deltaX = pieceFrom[1] - curTile[1];
+                    if (deltaX === 2) {
+                        newBoard[curTile[0]][Number(curTile[1])+1] = newBoard[7][0];
+                        newBoard[7][0] = 0;
+                    }
+                    if (deltaX === -2) {
+                        newBoard[curTile[0]][Number(curTile[1])-1] = newBoard[7][7];
+                        newBoard[7][7] = 0;
+                    }
+                    specialConditions[0] = false;
+                    specialConditions[1] = false;
+                }
+
+
                 stopMove();
                 onWorkerSortClick();
                 setCurBoard(newBoard);
@@ -190,14 +241,19 @@ const Chess = function ({onMountChess}) {
         switch(piece.piece) {
             case 1: 
                 //pawn, can move 1 forward, or 2 if it is on the 7th row
-                if (deltaX !== 0) {
+                let xMovePawn = Math.abs(deltaX);
+                if (xMovePawn > 1) {
                     return false
                 }
-                if (deltaY === 1) {
-                    return true
+                if (xMovePawn === 1 && deltaY === 1) {
+                    //console.log(curBoard[toIndex[0]][toIndex[1]]);
+                    return (curBoard[toIndex[0]][toIndex[1]] !== 0)
                 }
-                if (Number(fromIndex[0]) === 6 && deltaY === 2) {
-                    return (curBoard[Number(toIndex[0])+1][toIndex[1]] === 0)
+                if (deltaY === 1) {
+                    return (curBoard[toIndex[0]][toIndex[1]] === 0)
+                }
+                if (Number(fromIndex[0]) === 6 && deltaY === 2 && xMovePawn === 0) {
+                    return (curBoard[Number(toIndex[0])+1][toIndex[1]] === 0 && curBoard[toIndex[0]][toIndex[1]] === 0)
                 }
                 return false
             case 2:
@@ -297,6 +353,12 @@ const Chess = function ({onMountChess}) {
                 //king, moves anywhere within 1 tile
                 let xMoveKing = Math.abs(deltaX);
                 let yMoveKing = Math.abs(deltaY);
+                if (deltaX === 2 && yMoveKing === 0) {
+                    return (specialConditions[0] && (curBoard[toIndex[0]][Number(toIndex[1])+1] === 0))
+                }
+                if (deltaX === -2 && yMoveKing === 0) {
+                    return (specialConditions[1] && (curBoard[toIndex[0]][Number(toIndex[1])-1] === 0))
+                }
                 return (xMoveKing < 2 && yMoveKing < 2)
             default:
                 console.log("not a recognized piece");
@@ -377,8 +439,9 @@ const Chess = function ({onMountChess}) {
     }
 
 
+    console.log(curEval);
     return(<div>
-        <div className="chessBoard">
+        <div className="chessBoard" id="chessBoard">
         <div className="chessBoardTiles" style={{gridTemplateColumns: `repeat(8, ${boxWidth/8}px)`, gridTemplateRows: `repeat(8, ${boxHeight/8}px)`}}>
             {curBoard.map((row, index) => (
                 row.map((tile, innerIndex) => (
@@ -388,6 +451,7 @@ const Chess = function ({onMountChess}) {
                 ))
             ))}
         </div>
+        <div className="evalBar" style={{width: `${boxWidth/16}px`, height: `${boxHeight}px`, transform: `translate(${-4.3*boxWidth/8}px,${-boxHeight}px)`, background: `linear-gradient(to top,  dimgray 0%,dimgray ${50 - curEval/50}%,white ${50 - curEval/50}%,white 100%)`}}><span>{curEval/100}</span></div>
     </div>
     </div>
     );

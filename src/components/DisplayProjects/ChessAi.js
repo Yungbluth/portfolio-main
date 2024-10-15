@@ -17,7 +17,7 @@ Null Move Pruning?
 Extra Multi Threading for searching?
 */
 
-const ChessAi = (curBoard, playerColor) => {
+const ChessAi = (curBoard, playerColor, specialConditions) => {
 
     const pawnPositionTable = [
         [0,  0,  0,  0,  0,  0,  0,  0],
@@ -149,6 +149,17 @@ const ChessAi = (curBoard, playerColor) => {
                                     for (let h = 0; h < 8; h++) {
                                         newPossibleBoard[h] = possibleBoard[h].slice();
                                     }
+                                    if (newPossibleBoard[i][j].piece == 6) {
+                                        let deltaX = b - j;
+                                        if (deltaX === 2) {
+                                            newPossibleBoard[0][b-1] = newPossibleBoard[0][7];
+                                            newPossibleBoard[0][7] = 0;
+                                        }
+                                        if (deltaX === -2) {
+                                            newPossibleBoard[0][b+1] = newPossibleBoard[0][0];
+                                            newPossibleBoard[0][0] = 0;
+                                        }
+                                    }
                                     newPossibleBoard[a][b] = newPossibleBoard[i][j];
                                     newPossibleBoard[i][j] = 0;
                                     possibleMovesBoard.push(newPossibleBoard);
@@ -219,14 +230,27 @@ const ChessAi = (curBoard, playerColor) => {
         switch(piece.piece) {
             case 1: 
                 //pawn, can move 1 forward, or 2 if it is on the 7th row
-                if (deltaX !== 0) {
+                let xMovePawn = Math.abs(deltaX);
+                if (piece.player !== aiColor) {
+                    deltaY = -deltaY;
+                }
+                if (xMovePawn > 1) {
                     return false
                 }
-                if (deltaY === 1) {
-                    return true
+                if (xMovePawn === 1 && deltaY === 1) {
+                    return (tempBoard[toIndex[0]][toIndex[1]] !== 0)
                 }
-                if (Number(fromIndex[0]) === 1 && deltaY === 2) {
-                    return (tempBoard[Number(toIndex[0])+1][toIndex[1]] === 0)
+                if (deltaY === 1) {
+                    return (tempBoard[toIndex[0]][toIndex[1]] === 0)
+                }
+                if (piece.player === aiColor){
+                    if (Number(fromIndex[0]) === 1 && deltaY === 2 && xMovePawn == 0) {
+                        return (tempBoard[Number(toIndex[0])-1][toIndex[1]] === 0 && tempBoard[toIndex[0]][toIndex[1]] === 0)
+                    }
+                } else {
+                    if (Number(fromIndex[0]) === 6 && deltaY === 2 && xMovePawn == 0) {
+                        return (tempBoard[Number(toIndex[0])+1][toIndex[1]] === 0 && tempBoard[toIndex[0]][toIndex[1]] === 0)
+                    }
                 }
                 return false
             case 2:
@@ -331,6 +355,14 @@ const ChessAi = (curBoard, playerColor) => {
                 //king, moves anywhere within 1 tile
                 let xMoveKing = Math.abs(deltaX);
                 let yMoveKing = Math.abs(deltaY);
+                var conditionsOffset;
+                piece.player === aiColor ? conditionsOffset = 2 : conditionsOffset = 0;
+                if (deltaX === 2 && yMoveKing === 0) {
+                    return (specialConditions[0 + conditionsOffset] && (curBoard[toIndex[0]][Number(toIndex[1])-1] === 0) && curBoard[toIndex[0]][toIndex[1]] === 0)
+                }
+                if (deltaX === -2 && yMoveKing === 0) {
+                    return (specialConditions[1 + conditionsOffset] && (curBoard[toIndex[0]][Number(toIndex[1])+1] === 0) && curBoard[toIndex[0]][toIndex[1]] === 0)
+                }
                 return (xMoveKing < 2 && yMoveKing < 2)
             default:
                 console.log("not a recognized piece");
@@ -339,7 +371,7 @@ const ChessAi = (curBoard, playerColor) => {
     //makeMove("01", "20");
     let score = alphaBetaMax(-999999, 999999, 4, curBoard);
     //let score = getPossibleMoves(curBoard, aiColor);
-    return score;
+    return [score, evalBoardState(score)];
 };
 
 export default ChessAi;

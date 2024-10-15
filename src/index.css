@@ -731,7 +731,7 @@ strong {
   background: lightgray;
   opacity: 0;
   margin-top: 20px;
-  position:relative;
+  position:flex;
 }
 
 
@@ -753,7 +753,7 @@ strong {
 
 .chessBoard{
   text-align: center;
-  position: relative;
+  position: flex;
 }
 
 .piece {
@@ -805,4 +805,11 @@ strong {
   opacity: 20%; 
   position: absolute; 
   pointer-events: none;
+}
+
+.evalBar {
+  border: 1px solid black;
+  position: flex;
+  display: inline-block;
+  background-repeat: no-repeat;
 }
