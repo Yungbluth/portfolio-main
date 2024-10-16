@@ -49,26 +49,53 @@ const Chess = function ({onMountChess}) {
 
       const onWorkerSortClick = () => {
         sortWorker(curBoard, playerColor, specialConditions).then(resultArr => {
+            //console.log("HI");
+            //console.log(resultArr);
             let result = resultArr[0];
-            console.log(resultArr);
             let aiColor = Math.abs(playerColor-1);
-            if (result[0][0] === 0 || result[0][0].player !== aiColor) {
+            if (result[0][0] === 0) {
                 if (specialConditions[2] === true) {
                     specialConditions[2] = false;
+                }
+            } else {
+                if (result[0][0].player !== aiColor) {
+                    if (specialConditions[2] === true) {
+                        specialConditions[2] = false;
+                    }
                 }
             }
             if (result[0][7] === 0 || result[0][7].player !== aiColor) {
                 if (specialConditions[3] === true) {
                     specialConditions[3] = false;
                 }
+            } else {
+                if (result[0][7].player !== aiColor) {
+                    if (specialConditions[3] === true) {
+                        specialConditions[3] = false;
+                    }
+                }
             }
-            if (aiColor === 1 && (result[0][4] === 0 || result[0][4].player !== aiColor)) {
-                specialConditions[2] = false;
-                specialConditions[3] = false;
+            if (aiColor === 1) {
+                if (result[0][4] === 0) {
+                    specialConditions[2] = false;
+                    specialConditions[3] = false;
+                } else  {
+                    if (result[0][4].player !== aiColor) {
+                        specialConditions[2] = false;
+                        specialConditions[3] = false;
+                    }
+                }
             }
-            if (aiColor === 0 && (result[0][3] === 0 || result[0][4].player !== aiColor)) {
-                specialConditions[2] = false;
-                specialConditions[3] = false;
+            if (aiColor === 0) {
+                if (result[0][3] === 0) {
+                    specialConditions[2] = false;
+                    specialConditions[3] = false;
+                } else {
+                    if (result[0][4].player !== aiColor) {
+                        specialConditions[2] = false;
+                        specialConditions[3] = false;
+                    }
+                }
             }
             setCurEval(resultArr[1]);
             setCurBoard(result);
@@ -257,7 +284,7 @@ const Chess = function ({onMountChess}) {
         }
 
         if (pieceMoved.piece === 1 && Number(curTile[0]) === 0) {
-            pieceMoved.piece = 5;
+            tempBoard[curTile[0]][curTile[1]] = {player: pieceMoved.color, piece: 5};
         }
 
         let kingPos = 0;
@@ -437,7 +464,7 @@ const Chess = function ({onMountChess}) {
         }, 0);
     }
 
-    function activateTile(tileID, isDrag) {       
+    function activateTile(tileID, isDrag) {      
         for (let i = 0; i < curPossibleMoves.length; i++) {
             if (curPossibleMoves[i].parentElement) {
                 curPossibleMoves[i].parentElement.removeChild(curPossibleMoves[i]);

@@ -802,7 +802,7 @@ strong {
 
 #possibleSmallCircle {
   border-radius: 100%; 
-  opacity: 20%; 
+  opacity: 0.2; 
   position: absolute; 
   pointer-events: none;
 }

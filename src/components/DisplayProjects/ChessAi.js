@@ -146,29 +146,32 @@ const ChessAi = (curBoard, playerColor, specialConditions) => {
                     if (possibleBoard[i][j].player === possiblePlayer) {
                         for (let a = 0; a < 8; a++) {
                             for (let b = 0; b < 8; b++) {
-                                if (isValidMove(possibleBoard[i][j], String(i)+j, String(a)+b, possibleBoard, true)) {
-                                    let newPossibleBoard = [];
-                                    for (let h = 0; h < 8; h++) {
-                                        newPossibleBoard[h] = possibleBoard[h].slice();
-                                    }
-                                    if (newPossibleBoard[i][j].piece == 6) {
-                                        let deltaX = b - j;
-                                        if (deltaX === 2) {
-                                            newPossibleBoard[0][b-1] = newPossibleBoard[0][7];
-                                            newPossibleBoard[0][7] = 0;
+                                if (isValidMove(possibleBoard[i][j], String(i)+j, String(a)+b, possibleBoard)) {
+                                    if (!kingTrouble(possibleBoard[i][j], String(i)+j, String(a)+b, possiblePlayer, possibleBoard)) {
+                                        //REFUSES TO CHECKMATE??? Need checkmate clause (if curMoves === 0/undefined)
+                                        let newPossibleBoard = [];
+                                        for (let h = 0; h < 8; h++) {
+                                            newPossibleBoard[h] = possibleBoard[h].slice();
                                         }
-                                        if (deltaX === -2) {
-                                            newPossibleBoard[0][b+1] = newPossibleBoard[0][0];
-                                            newPossibleBoard[0][0] = 0;
+                                        if (newPossibleBoard[i][j].piece == 6) {
+                                            let deltaX = b - j;
+                                            if (deltaX === 2) {
+                                                newPossibleBoard[0][b-1] = newPossibleBoard[0][7];
+                                                newPossibleBoard[0][7] = 0;
+                                            }
+                                            if (deltaX === -2) {
+                                                newPossibleBoard[0][b+1] = newPossibleBoard[0][0];
+                                                newPossibleBoard[0][0] = 0;
+                                            }
                                         }
+                                        if (newPossibleBoard[i][j].piece === 1 && (a === 0 || a === 7)) {
+                                            newPossibleBoard[i][j] = {player: possiblePlayer, piece: 5};
+                                        }
+                                        newPossibleBoard[a][b] = newPossibleBoard[i][j];
+                                        newPossibleBoard[i][j] = 0;
+                                        possibleMovesBoard.push(newPossibleBoard);
+                                        
                                     }
-                                    if (newPossibleBoard[i][j].piece === 1 && (a === 0 || a === 7)) {
-                                        newPossibleBoard[i][j].piece = 5;
-                                    }
-                                    newPossibleBoard[a][b] = newPossibleBoard[i][j];
-                                    newPossibleBoard[i][j] = 0;
-                                    possibleMovesBoard.push(newPossibleBoard);
-                                    
                                 }
                             }
                         }
@@ -179,14 +182,72 @@ const ChessAi = (curBoard, playerColor, specialConditions) => {
         return possibleMovesBoard;
     }
 
+    function kingTrouble(pieceMoved, pieceFrom, curTile, color, board) {
+        let tempBoard = [];
+        for (let i = 0; i < 8; i++) {
+            tempBoard[i] = board[i].slice();
+        }
+        tempBoard[pieceFrom[0]][pieceFrom[1]] = 0;
+        tempBoard[curTile[0]][curTile[1]] = pieceMoved;
+
+
+        if (pieceMoved.piece === 6) {
+            let deltaX = pieceFrom[1] - curTile[1];
+            if (deltaX === 2) {
+                tempBoard[curTile[0]][Number(curTile[1])+1] = tempBoard[7][0];
+                tempBoard[7][0] = 0;
+            }
+            if (deltaX === -2) {
+                tempBoard[curTile[0]][Number(curTile[1])-1] = tempBoard[7][7];
+                tempBoard[7][7] = 0;
+            }
+        }
+
+        if (pieceMoved.piece === 1 && Number(curTile[0]) === 0) {
+            tempBoard[curTile[0]][curTile[1]] = {player: pieceMoved.color, piece: 5};
+        }
+
+        let kingPos = 0;
+        for (let i = 0; i < 8; i ++) {
+            for (let j = 0; j < 8; j++) {
+                if (tempBoard[i][j] !== 0) {
+                    if (tempBoard[i][j].piece === 6 && tempBoard[i][j].player === color) {
+                        kingPos = String(i) + j;
+                    }
+                }
+            }
+        }
+
+        let oppColor = Math.abs(color-1);
+        for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 8; j++) {
+                if (tempBoard[i][j] !== 0) {
+                    if (tempBoard[i][j].player === oppColor) {
+                        if (isValidMove(tempBoard[i][j], String(i)+j, kingPos, tempBoard)) {
+                            return true
+                        }
+                    }
+                }
+            }
+        }
+        return false
+    }
+
     function alphaBetaMax(alpha, beta, depthleft, possibleBoard) {
         if ( depthleft === 0 ) {return evalBoardState(possibleBoard)};
         let curMoves = getPossibleMoves(possibleBoard, aiColor);
         var bestMove;
+        if (curMoves === undefined) {
+            console.log("MIN UNDEF");
+        }
         for (let i = 0; i < curMoves.length; i++) {
            let score = alphaBetaMin( alpha, beta, depthleft - 1, curMoves[i]);
-           if( score >= beta )
+           if( score >= beta ){
+                if (depthleft === depth) {
+                    return (bestMove === undefined ? curMoves[i] : bestMove)
+                }
               return beta;   // fail hard beta-cutoff
+            }
            if( score > alpha ){
               alpha = score; // alpha acts like max in MiniMax
               bestMove = curMoves[i];
@@ -201,17 +262,25 @@ const ChessAi = (curBoard, playerColor, specialConditions) => {
      function alphaBetaMin(alpha, beta, depthleft, possibleBoard) {
         if ( depthleft === 0 ) {return -evalBoardState(possibleBoard)};
         let curMoves = getPossibleMoves(possibleBoard, playerColor);
+        var bestMove;
+        if (curMoves === undefined) {
+            console.log("MIN UNDEF");
+        }
         for (let i = 0; i < curMoves.length; i++) {
            let score = alphaBetaMax( alpha, beta, depthleft - 1, curMoves[i]);
            if( score <= alpha )
               return alpha; // fail hard alpha-cutoff
            if( score < beta )
               beta = score; // beta acts like min in MiniMax
+            bestMove = curMoves[i];
+        }
+        if (depthleft === depth) {
+            return bestMove;
         }
         return beta;
      }
 
-    function isValidMove(piece, fromIndex, toIndex, tempBoard, curCheck) {
+    function isValidMove(piece, fromIndex, toIndex, tempBoard) {
 
         if (fromIndex === toIndex) {
             return false
@@ -377,6 +446,7 @@ const ChessAi = (curBoard, playerColor, specialConditions) => {
     //makeMove("01", "20");
     let score = alphaBetaMax(-999999, 999999, depth, curBoard);
     //let score = getPossibleMoves(curBoard, aiColor);
+    //console.log(score);
     return [score, evalBoardState(score)];
 };
 
