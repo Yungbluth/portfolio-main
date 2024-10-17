@@ -40,7 +40,7 @@ const Chess = function ({onMountChess}) {
     const [curEval, setCurEval] = useState(0);
 
     //Castling rights for player left right, ai left right and En Passant column for player, ai
-    const [specialConditions, setSpecialConditions] = useState([true, true, true, true, -1, -1])
+    const [specialConditions] = useState([true, true, true, true, -1, -1])
     let pieces = [["", whitePawn, whiteRook, whiteKnight, whiteBishop, whiteQueen, whiteKing], ["", blackPawn, blackRook, blackKnight, blackBishop, blackQueen, blackKing]];
 
     useEffect(() => {
@@ -529,6 +529,75 @@ const Chess = function ({onMountChess}) {
         }
     }
 
+    function mateCheck(curColor, board) {
+        for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 8; j++) {
+                if (board[i][j] !== 0) {
+                    if (board[i][j].player === curColor){
+                        for (let a = 0; a < 8; a++) {
+                            for (let b = 0; b < 8; b++) {
+                                if (isValidMove(board[i][j], String(i)+j, String(a)+b, curColor, board)) {
+                                    if (!kingTrouble(board[i][j], String(i)+j, String(a)+b, curColor, board)) {
+                                        return false
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return true
+    }
+
+    function endGameCheckMate(winningColor, board) {
+        for (let i = 0; i < 8; i++) {
+            for (let j = 0; j < 8; j++) {
+                if (board[i][j] !== 0) {
+                    if (board[i][j].piece === 6) {
+                        if (board[i][j].player !== winningColor) {
+                            let loseKing = document.getElementById(String(i)+j);
+                            let loseCircle = document.createElement("div");
+                            loseCircle.id = "loseCircle";
+                            loseCircle.innerHTML = "#";
+                            loseCircle.style.left = loseKing.offsetLeft + "px";
+                            loseCircle.style.top = loseKing.offsetTop + "px";
+                            loseCircle.style.height = boxHeight/24 + "px";
+                            loseCircle.style.width = boxWidth/24 + "px";
+                            if (winningColor === 0) {
+                                //loser is black
+                                loseCircle.style.border = "1px solid white";
+                                loseCircle.style.backgroundColor = "black";
+                                loseCircle.style.color = "white";
+                            } else {
+                                //loser is white
+                                loseCircle.style.border = "1px solid black";
+                                loseCircle.style.backgroundColor = "white";
+                                loseCircle.style.color = "black";
+                            }
+                            loseKing.appendChild(loseCircle);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    function getEval() {
+        if (mateCheck(playerColor, curBoard)) {
+            endGameCheckMate(Math.abs(playerColor-1), curBoard);
+            return 50000;
+        }
+        return curEval;
+    }
+
+    function textEval() {
+        let curEval = getEval();
+        if (Math.abs(curEval) !== 50000) {
+            return Math.abs(curEval)/100;
+        }
+        return "Check Mate";
+    }
 
     return(<div>
         <div className="chessBoard" id="chessBoard">
@@ -541,7 +610,7 @@ const Chess = function ({onMountChess}) {
                 ))
             ))}
         </div>
-        <div className="evalBar" style={{width: `${boxWidth/16}px`, height: `${boxHeight}px`, transform: `translate(${-4.3*boxWidth/8}px,${-boxHeight}px)`, color: `${playerColor === 1 ? "black" : "white"}`, background: `linear-gradient(to top,  ${playerColor === 1 ? "dimgray" : "white"} 0%, ${playerColor === 1 ? "dimgray" : "white"} ${50 - curEval/50}%, ${playerColor === 1 ? "white" : "dimgray"} ${50 - curEval/50}%, ${playerColor === 1 ? "white" : "dimgray"} 100%)`}}><span>{Math.abs(curEval/100)}</span></div>
+        <div className="evalBar" style={{width: `${boxWidth/16}px`, height: `${boxHeight}px`, transform: `translate(${-4.3*boxWidth/8}px,${-boxHeight}px)`, color: `${playerColor === 1 ? "black" : "white"}`, background: `linear-gradient(to top,  ${playerColor === 1 ? "dimgray" : "white"} 0%, ${playerColor === 1 ? "dimgray" : "white"} ${50 - getEval()/50}%, ${playerColor === 1 ? "white" : "dimgray"} ${50 - getEval()/50}%, ${playerColor === 1 ? "white" : "dimgray"} 100%)`}}><span>{textEval()}</span></div>
     </div>
     </div>
     );

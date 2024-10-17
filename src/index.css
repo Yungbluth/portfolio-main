@@ -813,3 +813,9 @@ strong {
   display: inline-block;
   background-repeat: no-repeat;
 }
+
+#loseCircle {
+  position: absolute;
+  border-radius: 100%;
+  text-align: center;
+}

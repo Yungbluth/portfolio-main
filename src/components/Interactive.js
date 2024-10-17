@@ -63,7 +63,6 @@ const Interactive = () => {
     const tabData = [
         {label: "Sorting" },
         {label: "Chess" },
-        {label: "Tab 3" },
     ];
 
     function toggleOpacity() {
@@ -95,7 +94,7 @@ const Interactive = () => {
         return (
           <div>
             <button className="button-85" onClick={toggleOpacity}>
-              Try out some programs I made!
+              Try out some programs I made
             </button>
             <div className="programsBox">
                 <Tabs tabs={tabData} />

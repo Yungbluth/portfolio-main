@@ -1,4 +1,4 @@
-import Chess from "./Chess"
+
 /*
 Value of pieces:
 Pawn: 100
@@ -147,13 +147,13 @@ const ChessAi = (curBoard, playerColor, specialConditions) => {
                         for (let a = 0; a < 8; a++) {
                             for (let b = 0; b < 8; b++) {
                                 if (isValidMove(possibleBoard[i][j], String(i)+j, String(a)+b, possibleBoard)) {
-                                    if (!kingTrouble(possibleBoard[i][j], String(i)+j, String(a)+b, possiblePlayer, possibleBoard)) {
+                                    if (possiblePlayer === aiColor && !kingTrouble(possibleBoard[i][j], String(i)+j, String(a)+b, possiblePlayer, possibleBoard)) {
                                         //REFUSES TO CHECKMATE??? Need checkmate clause (if curMoves === 0/undefined)
                                         let newPossibleBoard = [];
                                         for (let h = 0; h < 8; h++) {
                                             newPossibleBoard[h] = possibleBoard[h].slice();
                                         }
-                                        if (newPossibleBoard[i][j].piece == 6) {
+                                        if (newPossibleBoard[i][j].piece === 6) {
                                             let deltaX = b - j;
                                             if (deltaX === 2) {
                                                 newPossibleBoard[0][b-1] = newPossibleBoard[0][7];
@@ -171,6 +171,28 @@ const ChessAi = (curBoard, playerColor, specialConditions) => {
                                         newPossibleBoard[i][j] = 0;
                                         possibleMovesBoard.push(newPossibleBoard);
                                         
+                                    } else {
+                                        let newPossibleBoard = [];
+                                        for (let h = 0; h < 8; h++) {
+                                            newPossibleBoard[h] = possibleBoard[h].slice();
+                                        }
+                                        if (newPossibleBoard[i][j].piece === 6) {
+                                            let deltaX = b - j;
+                                            if (deltaX === 2) {
+                                                newPossibleBoard[0][b-1] = newPossibleBoard[0][7];
+                                                newPossibleBoard[0][7] = 0;
+                                            }
+                                            if (deltaX === -2) {
+                                                newPossibleBoard[0][b+1] = newPossibleBoard[0][0];
+                                                newPossibleBoard[0][0] = 0;
+                                            }
+                                        }
+                                        if (newPossibleBoard[i][j].piece === 1 && (a === 0 || a === 7)) {
+                                            newPossibleBoard[i][j] = {player: possiblePlayer, piece: 5};
+                                        }
+                                        newPossibleBoard[a][b] = newPossibleBoard[i][j];
+                                        newPossibleBoard[i][j] = 0;
+                                        possibleMovesBoard.push(newPossibleBoard);
                                     }
                                 }
                             }
@@ -319,11 +341,11 @@ const ChessAi = (curBoard, playerColor, specialConditions) => {
                     return (tempBoard[toIndex[0]][toIndex[1]] === 0)
                 }
                 if (piece.player === aiColor){
-                    if (Number(fromIndex[0]) === 1 && deltaY === 2 && xMovePawn == 0) {
+                    if (Number(fromIndex[0]) === 1 && deltaY === 2 && xMovePawn === 0) {
                         return (tempBoard[Number(toIndex[0])-1][toIndex[1]] === 0 && tempBoard[toIndex[0]][toIndex[1]] === 0)
                     }
                 } else {
-                    if (Number(fromIndex[0]) === 6 && deltaY === 2 && xMovePawn == 0) {
+                    if (Number(fromIndex[0]) === 6 && deltaY === 2 && xMovePawn === 0) {
                         return (tempBoard[Number(toIndex[0])+1][toIndex[1]] === 0 && tempBoard[toIndex[0]][toIndex[1]] === 0)
                     }
                 }
