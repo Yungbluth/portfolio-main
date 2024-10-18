@@ -17,7 +17,7 @@ import ChessAi from "./ChessAi";
 
 const Chess = function ({onMountChess}) {
 
-    const [sortWorker] = useWorker(ChessAi);
+    const [aiWorker, {kill: killWorker}] = useWorker(ChessAi);
 
     let boxWidth = Math.min(document.documentElement.clientWidth * 0.8 - 60, document.documentElement.clientHeight * 0.8 - 60);
     let boxHeight = boxWidth.valueOf();
@@ -47,10 +47,8 @@ const Chess = function ({onMountChess}) {
         onMountChess([curBoard, setCurBoard]);
       }, [onMountChess, curBoard]);
 
-      const onWorkerSortClick = () => {
-        sortWorker(curBoard, playerColor, specialConditions).then(resultArr => {
-            //console.log("HI");
-            //console.log(resultArr);
+      const onWorkerAi = () => {
+        aiWorker(curBoard, playerColor, specialConditions).then(resultArr => {
             let result = resultArr[0];
             let aiColor = Math.abs(playerColor-1);
             if (result[0][0] === 0) {
@@ -100,6 +98,7 @@ const Chess = function ({onMountChess}) {
             setCurEval(resultArr[1]);
             setCurBoard(result);
             allowMove();
+            killWorker();
         });
       };
 
@@ -156,7 +155,7 @@ const Chess = function ({onMountChess}) {
         if (pieceObj === 0 || pieceObj === undefined) {
             return (<img src ={transparent} onClick={clickTile} draggable="false" style={{opacity: 0}} onDragOver={allowDrop} onDrop={endDrag} alt="Empty"></img>);
         }
-        return(<img src={pieces[pieceObj.player][pieceObj.piece]} draggable="true" onClick={clickTile} onDragStart={testDrag} onDragOver={allowDrop} onDrop={endDrag} onDragEnd={oobHelper} id="piece" alt="Piece"></img>);
+        return(<img src={pieces[pieceObj.player][pieceObj.piece]} draggable="true" onClick={clickTile} onDragStart={dragPiece} onDragOver={allowDrop} onDrop={endDrag} onDragEnd={oobHelper} id="piece" alt="Piece"></img>);
     }
 
     function allowDrop(e) {
@@ -246,7 +245,11 @@ const Chess = function ({onMountChess}) {
 
 
                     stopMove();
-                    onWorkerSortClick();
+                    if (!mateCheck(Math.abs(playerColor-1), newBoard)) {
+                        onWorkerAi();
+                    } else {
+                        endGameCheckMate(playerColor, newBoard);
+                    }
                     setCurBoard(newBoard);
                 }
                 return true;
@@ -454,7 +457,7 @@ const Chess = function ({onMountChess}) {
         }
     }
 
-    function testDrag(e){
+    function dragPiece(e){
         e.dataTransfer.setData("fromIndex", e.target.parentElement.id);
         activateTile(e.target.parentElement.id, true);
         e.target.style = "transform: translate(0,0);";
@@ -584,9 +587,14 @@ const Chess = function ({onMountChess}) {
     }
 
     function getEval() {
+        
         if (mateCheck(playerColor, curBoard)) {
             endGameCheckMate(Math.abs(playerColor-1), curBoard);
             return 50000;
+        }
+        if (mateCheck(Math.abs(playerColor-1), curBoard)) {
+            endGameCheckMate(playerColor, curBoard);
+            return -50000;
         }
         return curEval;
     }

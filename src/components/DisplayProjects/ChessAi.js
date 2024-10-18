@@ -7,14 +7,6 @@ Bishop: 330
 Rook: 500
 Queen: 900
 King: 20000
-
-Explore possible moves using Minimax algo
-Optimize with Alpha-beta pruning
-Improve evaluation based on positioning of pieces
-
-Quiescence Search?
-Null Move Pruning?
-Extra Multi Threading for searching?
 */
 
 const ChessAi = (curBoard, playerColor, specialConditions) => {
@@ -89,12 +81,6 @@ const ChessAi = (curBoard, playerColor, specialConditions) => {
 
     let aiColor = Math.abs(playerColor-1);
 
-    /*
-    function makeMove(fromIndex, toIndex) {
-        curBoard[toIndex[0]][toIndex[1]] = curBoard[fromIndex[0]][fromIndex[1]];
-        curBoard[fromIndex[0]][fromIndex[1]] = 0;
-    }*/
-
     function evalBoardState(possibleBoard) {
         let evalNum = 0;
         for (let i = 0; i < possibleBoard.length; i++) {
@@ -148,7 +134,7 @@ const ChessAi = (curBoard, playerColor, specialConditions) => {
                             for (let b = 0; b < 8; b++) {
                                 if (isValidMove(possibleBoard[i][j], String(i)+j, String(a)+b, possibleBoard)) {
                                     if (possiblePlayer === aiColor && !kingTrouble(possibleBoard[i][j], String(i)+j, String(a)+b, possiblePlayer, possibleBoard)) {
-                                        //REFUSES TO CHECKMATE??? Need checkmate clause (if curMoves === 0/undefined)
+                                        
                                         let newPossibleBoard = [];
                                         for (let h = 0; h < 8; h++) {
                                             newPossibleBoard[h] = possibleBoard[h].slice();
@@ -230,7 +216,7 @@ const ChessAi = (curBoard, playerColor, specialConditions) => {
         }
 
         let kingPos = 0;
-        for (let i = 0; i < 8; i ++) {
+        for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {
                 if (tempBoard[i][j] !== 0) {
                     if (tempBoard[i][j].piece === 6 && tempBoard[i][j].player === color) {
@@ -240,6 +226,9 @@ const ChessAi = (curBoard, playerColor, specialConditions) => {
             }
         }
 
+        if (kingPos === 0) {
+            return false
+        }
         let oppColor = Math.abs(color-1);
         for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {
@@ -259,9 +248,6 @@ const ChessAi = (curBoard, playerColor, specialConditions) => {
         if ( depthleft === 0 ) {return evalBoardState(possibleBoard)};
         let curMoves = getPossibleMoves(possibleBoard, aiColor);
         var bestMove;
-        if (curMoves === undefined) {
-            console.log("MIN UNDEF");
-        }
         for (let i = 0; i < curMoves.length; i++) {
            let score = alphaBetaMin( alpha, beta, depthleft - 1, curMoves[i]);
            if( score >= beta ){
@@ -285,9 +271,6 @@ const ChessAi = (curBoard, playerColor, specialConditions) => {
         if ( depthleft === 0 ) {return -evalBoardState(possibleBoard)};
         let curMoves = getPossibleMoves(possibleBoard, playerColor);
         var bestMove;
-        if (curMoves === undefined) {
-            console.log("MIN UNDEF");
-        }
         for (let i = 0; i < curMoves.length; i++) {
            let score = alphaBetaMax( alpha, beta, depthleft - 1, curMoves[i]);
            if( score <= alpha )
@@ -307,11 +290,6 @@ const ChessAi = (curBoard, playerColor, specialConditions) => {
         if (fromIndex === toIndex) {
             return false
         }
-        /*
-        if (piece.player !== curColor) {
-            //not your piece!
-            return false
-        }*/
 
         if (tempBoard[toIndex[0]][toIndex[1]] !== 0) {
             if (tempBoard[toIndex[0]][toIndex[1]].player === tempBoard[fromIndex[0]][fromIndex[1]].player) {
@@ -319,8 +297,6 @@ const ChessAi = (curBoard, playerColor, specialConditions) => {
             }
         }
         
-        //let deltaX = fromIndex[1] - toIndex[1];
-        //let deltaY = fromIndex[0] - toIndex[0];
         let deltaX = toIndex[1] - fromIndex[1];
         let deltaY = toIndex[0] - fromIndex[0];
         
@@ -465,10 +441,12 @@ const ChessAi = (curBoard, playerColor, specialConditions) => {
                 console.log("not a recognized piece");
         }
     }
-    //makeMove("01", "20");
+
     let score = alphaBetaMax(-999999, 999999, depth, curBoard);
-    //let score = getPossibleMoves(curBoard, aiColor);
-    //console.log(score);
+
+    if (!Array.isArray(score)) {
+        score = getPossibleMoves(curBoard, aiColor)[0];
+    }
     return [score, evalBoardState(score)];
 };
 
