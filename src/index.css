@@ -782,24 +782,6 @@ strong {
     background-color: rgb(235,236,209);
 }
 
-/*
-.papan div:active {
-    background-color: rgb(184,202,80);
-    background-color: red;
-}
-
-.papan div:nth-child(-n + 8):nth-child(even):active:not(:empty),
-.papan div:nth-child(n + 8):nth-child(-n + 16):nth-child(odd):active:not(:empty),
-.papan div:nth-child(n + 17):nth-child(-n + 24):nth-child(even):active:not(:empty),
-.papan div:nth-child(n + 25):nth-child(-n + 32):nth-child(odd):active:not(:empty),
-.papan div:nth-child(n + 33):nth-child(-n + 40):nth-child(even):active:not(:empty),
-.papan div:nth-child(n + 41):nth-child(-n + 48):nth-child(odd):active:not(:empty),
-.papan div:nth-child(n + 49):nth-child(-n + 56):nth-child(even):active:not(:empty),
-.papan div:nth-child(n + 57):nth-child(-n + 64):nth-child(odd):active:not(:empty) {
-    background-color: rgb(244,246,142);
-    background-color: red;
-}*/
-
 #possibleSmallCircle {
   border-radius: 100%; 
   opacity: 0.2; 

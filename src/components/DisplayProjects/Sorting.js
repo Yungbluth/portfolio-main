@@ -88,6 +88,7 @@ const Sorting = function ({ onMountSort }) {
     document.getElementById("sortButton").disabled = false;
     document.getElementById("dropdownSort").disabled = false;
     document.getElementById("sizeArraySlider").disabled = false;
+    document.getElementById("speedArraySlider").disabled = false;
     if (
       document.getElementById("Sorting") !== null &&
       document.getElementById("Sorting") !== undefined
@@ -99,12 +100,6 @@ const Sorting = function ({ onMountSort }) {
       document.getElementById("Chess") !== undefined
     ) {
       document.getElementById("Chess").inert = false;
-    }
-    if (
-      document.getElementById("Tab 3") !== null &&
-      document.getElementById("Tab 3") !== undefined
-    ) {
-      document.getElementById("Tab 3").inert = false;
     }
   }
 
@@ -290,6 +285,7 @@ const Sorting = function ({ onMountSort }) {
     document.getElementById("sortButton").disabled = true;
     document.getElementById("dropdownSort").disabled = true;
     document.getElementById("sizeArraySlider").disabled = true;
+    document.getElementById("speedArraySlider").disabled = true;
     if (
       document.getElementById("Sorting") !== null &&
       document.getElementById("Sorting") !== undefined
@@ -301,12 +297,6 @@ const Sorting = function ({ onMountSort }) {
       document.getElementById("Chess") !== undefined
     ) {
       document.getElementById("Chess").inert = true;
-    }
-    if (
-      document.getElementById("Tab 3") !== null &&
-      document.getElementById("Tab 3") !== undefined
-    ) {
-      document.getElementById("Tab 3").inert = true;
     }
     switch (curAlgo) {
       case "Bubble Sort":
@@ -355,7 +345,7 @@ const Sorting = function ({ onMountSort }) {
         step="1"
         value={sliderSpeed}
         onChange={sliderSpeedListener}
-        id="sizeArraySlider"
+        id="speedArraySlider"
       ></input>
       <div className="arrayContainer">
         {curArray.map((num, index) => (
