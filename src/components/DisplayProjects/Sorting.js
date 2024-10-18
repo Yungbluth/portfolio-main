@@ -1,14 +1,9 @@
 import React, { useState, useEffect } from "react";
 
-const Sorting = function ({onMountSort}) {
+const Sorting = function ({ onMountSort }) {
   const [curArray, setCurArray] = useState([0, 1, 2, 3, 4]);
-  //[curArray, setCurArray] = useState([0, 1, 2, 3, 4]);
-  //console.log = console.warn = console.error = () => {};
-  //store translates in separate array
-  //stack of translations, animate after array is fully sorted
+  const [speed, setCurSpeed] = useState(200);
 
-  //const [value, setValue] = useState(5);
-  //const [sortPush, setSortPush] = useState({ bool: 0 });
   useEffect(() => {
     onMountSort([curArray, setCurArray]);
   }, [onMountSort, curArray]);
@@ -17,6 +12,8 @@ const Sorting = function ({onMountSort}) {
   let width = 50;
   let opacity = 1;
   let boxWidth = document.documentElement.clientWidth * 0.8;
+  var sliderSpeed;
+
   if (value * width >= boxWidth * 2) {
     width = Math.round(width / 4);
     opacity = 0;
@@ -59,9 +56,13 @@ const Sorting = function ({onMountSort}) {
     return shufArray;
   }
 
-  function sliderListener(e) {
+  function sliderSizeListener(e) {
     let tempArray = createNewArray(e.target.value);
     setCurArray(tempArray);
+  }
+
+  function sliderSpeedListener(e) {
+    setCurSpeed(550 - Number(e.target.value));
   }
 
   function shuffleArray() {
@@ -78,15 +79,74 @@ const Sorting = function ({onMountSort}) {
     document.getElementById("sortButton").disabled = false;
     document.getElementById("dropdownSort").disabled = false;
     document.getElementById("sizeArraySlider").disabled = false;
-    if (document.getElementById("Sorting") !== null && document.getElementById("Sorting") !== undefined) {
+    if (
+      document.getElementById("Sorting") !== null &&
+      document.getElementById("Sorting") !== undefined
+    ) {
       document.getElementById("Sorting").inert = false;
     }
-    if (document.getElementById("Chess") !== null && document.getElementById("Chess") !== undefined) {
+    if (
+      document.getElementById("Chess") !== null &&
+      document.getElementById("Chess") !== undefined
+    ) {
       document.getElementById("Chess").inert = false;
     }
-    if (document.getElementById("Tab 3") !== null && document.getElementById("Tab 3") !== undefined) {
+    if (
+      document.getElementById("Tab 3") !== null &&
+      document.getElementById("Tab 3") !== undefined
+    ) {
       document.getElementById("Tab 3").inert = false;
     }
+  }
+
+  function sortingAnimator(queue) {
+    let numTranslated = [];
+    let count = 0;
+    for (let i = 0; i < queue.length; i++) {
+      setTimeout(() => {
+        if (numTranslated[queue[count].first] == null) {
+          numTranslated[queue[count].first] = 0;
+        }
+        if (numTranslated[queue[count].second] == null) {
+          numTranslated[queue[count].second] = 0;
+        }
+        let difference = queue[count].firstIndex - queue[count].secondIndex;
+
+        document.getElementById(
+          queue[count].first
+        ).style.transitionDuration = `${speed}ms`;
+        document.getElementById(
+          queue[count].second
+        ).style.transitionDuration = `${speed}ms`;
+        document.getElementById(
+          queue[count].first
+        ).style.transform = `translateX(${
+          -width * difference + width * numTranslated[queue[count].first]
+        }px)`;
+        document.getElementById(
+          queue[count].second
+        ).style.transform = `translateX(${
+          width * difference + width * numTranslated[queue[count].second]
+        }px)`;
+        numTranslated[queue[count].first] =
+          Number(numTranslated[queue[count].first]) - difference;
+        numTranslated[queue[count].second] =
+          Number(numTranslated[queue[count].second]) + difference;
+        count = count + 1;
+      }, i * speed);
+    }
+    //get rid of transition duration to remove the 'jitter' after sorted and then set sorted array as final
+    setTimeout(() => {
+      for (let i = 0; i < queue.length; i++) {
+        document.getElementById(queue[i].first).style.transitionDuration = `0s`;
+        document.getElementById(
+          queue[i].second
+        ).style.transitionDuration = `0s`;
+      }
+      let tempArray = createNewArray(curArray.length);
+      setCurArray(tempArray);
+      resetTest();
+    }, queue.length * speed + 2 * speed);
   }
 
   //Bubble sort
@@ -107,9 +167,10 @@ const Sorting = function ({onMountSort}) {
           arr[j + 1] = temp;
           swapped = true;
           queue.push({
-            index: j.valueOf(),
             first: arr[j].valueOf(),
             second: arr[j + 1].valueOf(),
+            firstIndex: j + 1,
+            secondIndex: j,
           });
         }
       }
@@ -118,52 +179,7 @@ const Sorting = function ({onMountSort}) {
       // swapped by inner loop, then break
       if (swapped === false) break;
     }
-    let numTranslated = [];
-    let count = 0;
-    //perform all swapping operations with animations
-    for (i = 0; i < queue.length; i++) {
-      setTimeout(() => {
-        if (numTranslated[queue[count].first] == null) {
-          numTranslated[queue[count].first] = 0;
-        }
-        if (numTranslated[queue[count].second] == null) {
-          numTranslated[queue[count].second] = 0;
-        }
-        document.getElementById(
-          queue[count].first
-        ).style.transitionDuration = `0.1s`;
-        document.getElementById(
-          queue[count].second
-        ).style.transitionDuration = `0.1s`;
-        document.getElementById(
-          queue[count].first
-        ).style.transform = `translateX(${
-          -width + width * numTranslated[queue[count].first]
-        }px)`;
-        document.getElementById(
-          queue[count].second
-        ).style.transform = `translateX(${
-          width + width * numTranslated[queue[count].second]
-        }px)`;
-        numTranslated[queue[count].first] =
-          Number(numTranslated[queue[count].first]) - 1;
-        numTranslated[queue[count].second] =
-          Number(numTranslated[queue[count].second]) + 1;
-        count = count + 1;
-      }, i * 100);
-    }
-    //get rid of transition duration to remove the 'jitter' after sorted and then set sorted array as final
-    setTimeout(() => {
-      for (i = 0; i < queue.length; i++) {
-        document.getElementById(queue[i].first).style.transitionDuration = `0s`;
-        document.getElementById(
-          queue[i].second
-        ).style.transitionDuration = `0s`;
-      }
-      let tempArray = createNewArray(arr.length);
-      setCurArray(tempArray);
-      resetTest();
-    }, queue.length * 100 + 200);
+    sortingAnimator(queue);
   }
 
   function quickSortFirst() {
@@ -172,104 +188,8 @@ const Sorting = function ({onMountSort}) {
     let high = curArray.length - 1;
     let queue = [];
     quickSort(arr, low, high, queue);
-
-    let numTranslated = [];
-    let count = 0;
-    var i;
-    let curPivot = document.getElementById(queue[count].pivot);
-    curPivot.style.backgroundColor = `red`;
-    //perform all swapping operations with animations
-    for (i = 0; i < queue.length; i++) {
-      setTimeout(() => {
-        if (numTranslated[queue[count].first] == null) {
-          numTranslated[queue[count].first] = 0;
-        }
-        if (numTranslated[queue[count].second] == null) {
-          numTranslated[queue[count].second] = 0;
-        }
-        let difference = queue[count].firstIndex - queue[count].secondIndex;
-        let newPivot = document.getElementById(queue[count].pivot);
-        if (newPivot !== curPivot) {
-          newPivot.style.backgroundColor = `red`;
-          curPivot.style.backgroundColor = `lightgreen`;
-          curPivot = newPivot;
-        }
-        document.getElementById(
-          queue[count].first
-        ).style.transitionDuration = `0.1s`;
-        document.getElementById(
-          queue[count].second
-        ).style.transitionDuration = `0.1s`;
-        document.getElementById(
-          queue[count].first
-        ).style.transform = `translateX(${
-          -width * difference + width * numTranslated[queue[count].first]
-        }px)`;
-        document.getElementById(
-          queue[count].second
-        ).style.transform = `translateX(${
-          width * difference + width * numTranslated[queue[count].second]
-        }px)`;
-        numTranslated[queue[count].first] =
-          Number(numTranslated[queue[count].first]) - difference;
-        numTranslated[queue[count].second] =
-          Number(numTranslated[queue[count].second]) + difference;
-        count = count + 1;
-      }, i * 200);
-    }
-    //get rid of transition duration to remove the 'jitter' after sorted and then set sorted array as final
-    setTimeout(() => {
-      curPivot.style.backgroundColor = `lightgreen`;
-      for (i = 0; i < queue.length; i++) {
-        document.getElementById(queue[i].first).style.transitionDuration = `0s`;
-        document.getElementById(
-          queue[i].second
-        ).style.transitionDuration = `0s`;
-      }
-      let tempArray = createNewArray(arr.length);
-      setCurArray(tempArray);
-      resetTest();
-    }, queue.length * 200 + 500);
+    sortingAnimator(queue);
   }
-
-  /*
-  //Lomuto's Partition
-  function partition(arr, low, high, queue)
-    {
-        let temp;
-        let pivot = arr[high];
-  
-        // index of smaller element
-        let i = (low - 1);
-        for (let j = low; j <= high - 1; j++) {
-  
-            // If current element is
-            // smaller than or
-            // equal to pivot
-            if (arr[j] <= pivot) {
-                i++;
-  
-                if (arr[i] != arr[j]) {
-                  queue.push({first: arr[i], second: arr[j], firstIndex: i, secondIndex: j, pivot: high});
-                }
-                // swap arr[i] and arr[j]
-                temp = arr[i];
-                arr[i] = arr[j];
-                arr[j] = temp;
-            }
-        }
-  
-        if (arr[i+1] != arr[high]) {
-          queue.push({first: arr[i+1], second: arr[high], firstIndex: i+1, secondIndex: high, pivot: i+1});
-        }
-        // swap arr[i+1] and arr[high]
-        // (or pivot)
-        temp = arr[i + 1];
-        arr[i + 1] = arr[high];
-        arr[high] = temp;
-  
-        return i + 1;
-    }*/
 
   //Hoare's Partition
   function partition(arr, low, high, queue) {
@@ -305,11 +225,6 @@ const Sorting = function ({onMountSort}) {
     }
   }
 
-  /* The main function that implements
-    QuickSort() arr[] --> Array to be 
-    sorted,
-    low --> Starting index,
-    high --> Ending index */
   function quickSort(arr, low, high, queue) {
     if (low < high) {
       /* pi is partitioning index, 
@@ -324,88 +239,39 @@ const Sorting = function ({onMountSort}) {
     }
   }
 
-  function selectionSortFirst() {
+  function selectionSort() {
     let arr = curArray.slice();
     let queue = [];
-    selectionSort(arr, queue);
-    let numTranslated = [];
-    let count = 0;
-    var i;
-    for (i = 0; i < queue.length; i++) {
-      setTimeout(() => {
-        if (numTranslated[queue[count].first] == null) {
-          numTranslated[queue[count].first] = 0;
-        }
-        if (numTranslated[queue[count].second] == null) {
-          numTranslated[queue[count].second] = 0;
-        }
-        let difference = queue[count].firstIndex - queue[count].secondIndex;
-        document.getElementById(
-          queue[count].first
-        ).style.transitionDuration = `0.1s`;
-        document.getElementById(
-          queue[count].second
-        ).style.transitionDuration = `0.1s`;
-        document.getElementById(
-          queue[count].first
-        ).style.transform = `translateX(${
-          -width * difference + width * numTranslated[queue[count].first]
-        }px)`;
-        document.getElementById(
-          queue[count].second
-        ).style.transform = `translateX(${
-          width * difference + width * numTranslated[queue[count].second]
-        }px)`;
-        numTranslated[queue[count].first] =
-          Number(numTranslated[queue[count].first]) - difference;
-        numTranslated[queue[count].second] =
-          Number(numTranslated[queue[count].second]) + difference;
-        count = count + 1;
-      }, i * 200);
-    }
-    setTimeout(() => {
-      for (i = 0; i < queue.length; i++) {
-        document.getElementById(queue[i].first).style.transitionDuration = `0s`;
-        document.getElementById(
-          queue[i].second
-        ).style.transitionDuration = `0s`;
-      }
-      let tempArray = createNewArray(arr.length);
-      setCurArray(tempArray);
-      resetTest();
-    }, queue.length * 200 + 500);
-  }
-
-  function selectionSort(arr, queue) {
     let n = arr.length;
     for (let i = 0; i < n - 1; i++) {
-    
-        // Assume the current position holds
-        // the minimum element
-        let min_idx = i;
-        
-        // Iterate through the unsorted portion
-        // to find the actual minimum
-        for (let j = i + 1; j < n; j++) {
-            if (arr[j] < arr[min_idx]) {
-            
-                // Update min_idx if a smaller element is found
-                min_idx = j;
-            }
+      // Assume the current position holds
+      // the minimum element
+      let minIndex = i;
+
+      // Iterate through the unsorted portion
+      // to find the actual minimum
+      for (let j = i + 1; j < n; j++) {
+        if (arr[j] < arr[minIndex]) {
+          // Update minIndex if a smaller element is found
+          minIndex = j;
         }
-        
-        // Move minimum element to its
-        // correct position
+      }
+
+      // Move minimum element to its
+      // correct position
+      if (i !== minIndex) {
         queue.push({
           first: arr[i],
-          second: arr[min_idx],
+          second: arr[minIndex],
           firstIndex: i,
-          secondIndex: min_idx,
+          secondIndex: minIndex,
         });
-        let temp = arr[i];
-        arr[i] = arr[min_idx];
-        arr[min_idx] = temp;
+      }
+      let temp = arr[i];
+      arr[i] = arr[minIndex];
+      arr[minIndex] = temp;
     }
+    sortingAnimator(queue);
   }
 
   function activateSorter() {
@@ -415,32 +281,53 @@ const Sorting = function ({onMountSort}) {
     document.getElementById("sortButton").disabled = true;
     document.getElementById("dropdownSort").disabled = true;
     document.getElementById("sizeArraySlider").disabled = true;
-    if (document.getElementById("Sorting") !== null && document.getElementById("Sorting") !== undefined) {
+    if (
+      document.getElementById("Sorting") !== null &&
+      document.getElementById("Sorting") !== undefined
+    ) {
       document.getElementById("Sorting").inert = true;
     }
-    if (document.getElementById("Chess") !== null && document.getElementById("Chess") !== undefined) {
+    if (
+      document.getElementById("Chess") !== null &&
+      document.getElementById("Chess") !== undefined
+    ) {
       document.getElementById("Chess").inert = true;
     }
-    if (document.getElementById("Tab 3") !== null && document.getElementById("Tab 3") !== undefined) {
+    if (
+      document.getElementById("Tab 3") !== null &&
+      document.getElementById("Tab 3") !== undefined
+    ) {
       document.getElementById("Tab 3").inert = true;
     }
-    switch(curAlgo) {
-      case "Bubble Sort": bubbleSort();
-      break;
-      case "Quick Sort": quickSortFirst();
-      break;
-      case "Selection Sort": selectionSortFirst();
-      break;
-      default: console.log("NOT IN THE MENU?");
+    switch (curAlgo) {
+      case "Bubble Sort":
+        bubbleSort();
+        break;
+      case "Quick Sort":
+        quickSortFirst();
+        break;
+      case "Selection Sort":
+        selectionSort();
+        break;
+      default:
+        console.log("NOT IN THE MENU?");
     }
   }
 
   //Handle all html given
   return (
     <div>
-      <button id="shuffleButton" onClick={shuffleArray}>Shuffle!</button>
-      <button id="sortButton" onClick={activateSorter}>Sort!</button>
-      <select id="dropdownSort"><option>Bubble Sort</option><option>Quick Sort</option><option>Selection Sort</option></select>
+      <button id="shuffleButton" onClick={shuffleArray}>
+        Shuffle!
+      </button>
+      <button id="sortButton" onClick={activateSorter}>
+        Sort!
+      </button>
+      <select id="dropdownSort">
+        <option>Bubble Sort</option>
+        <option>Quick Sort</option>
+        <option>Selection Sort</option>
+      </select>
       Set Array Size!
       <input
         type="range"
@@ -448,7 +335,17 @@ const Sorting = function ({onMountSort}) {
         max="100"
         step="1"
         value={value}
-        onChange={sliderListener}
+        onChange={sliderSizeListener}
+        id="sizeArraySlider"
+      ></input>
+      Set Sort Speed!
+      <input
+        type="range"
+        min="50"
+        max="500"
+        step="1"
+        value={sliderSpeed}
+        onChange={sliderSpeedListener}
         id="sizeArraySlider"
       ></input>
       <div className="arrayContainer">
