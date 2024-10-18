@@ -1,6 +1,7 @@
-import React, { useState} from "react";
+import React, { useState } from "react";
 import Sorting from "./DisplayProjects/Sorting"
 import Chess from "./DisplayProjects/Chess"
+import { FaGithub } from "react-icons/fa";
 
 const Interactive = () => {
 
@@ -89,13 +90,17 @@ const Interactive = () => {
             return (<div>Tab 3</div>)
         }
     }
+    function portfolioGithubPage() {
+        window.open("https://github.com/Yungbluth/portfolio-main/tree/main/src/components/DisplayProjects", "_blank")
+    }
     
     function InteractivePrograms() {
         return (
           <div>
-            <button className="button-85" onClick={toggleOpacity}>
+            <button className="interactiveButton" id="interactiveButton" onClick={toggleOpacity}>
               Try out some programs I made
             </button>
+            <button onClick={portfolioGithubPage} id="interactiveGithubButton"><FaGithub className="icon-hover" id="interactiveGithub" style={{left: `${document.documentElement.clientWidth * 0.4 + 10}px`}}/></button>
             <div className="programsBox">
                 <Tabs tabs={tabData} />
             </div>
