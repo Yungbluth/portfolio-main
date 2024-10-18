@@ -100,7 +100,7 @@ const Interactive = () => {
             <button className="interactiveButton" id="interactiveButton" onClick={toggleOpacity}>
               Try out some programs I made
             </button>
-            <button onClick={portfolioGithubPage} id="interactiveGithubButton"><FaGithub className="icon-hover" id="interactiveGithub" style={{left: `${document.documentElement.clientWidth * 0.4 + 10}px`}}/></button>
+            <button onClick={portfolioGithubPage} id="interactiveGithubButton"><FaGithub className="icon-hover" id="interactiveGithub"/></button>
             <div className="programsBox">
                 <Tabs tabs={tabData} />
             </div>

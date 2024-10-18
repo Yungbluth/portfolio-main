@@ -809,6 +809,7 @@ strong {
   display: inline-block;
   position: absolute;
   visibility: visible;
+  left: 40.5vw;
 }
 
 #interactiveGithubButton {
