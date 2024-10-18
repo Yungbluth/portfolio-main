@@ -11,8 +11,17 @@ const Sorting = function ({ onMountSort }) {
   let value = curArray.length;
   let width = 50;
   let opacity = 1;
+  let heightMult = 7;
   let boxWidth = document.documentElement.clientWidth * 0.8;
+  let boxHeight = document.documentElement.clientHeight * 0.8;
   var sliderSpeed;
+
+  if (value * heightMult + 10 >= boxHeight * 1.4) {
+    heightMult = Math.round(heightMult / 4);
+  }
+  if(value * heightMult + 10 >= boxHeight * 0.7) {
+    heightMult = Math.round(heightMult / 2);
+  }
 
   if (value * width >= boxWidth * 2) {
     width = Math.round(width / 4);
@@ -353,7 +362,7 @@ const Sorting = function ({ onMountSort }) {
           <div
             className="nums"
             style={{
-              height: `${num * 7 + 10}px`,
+              height: `${num * heightMult + 10}px`,
               width: `${width}px`,
             }}
             key={index}
