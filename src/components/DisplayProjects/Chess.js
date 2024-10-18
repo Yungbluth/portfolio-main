@@ -47,6 +47,7 @@ const Chess = function ({onMountChess}) {
         onMountChess([curBoard, setCurBoard]);
       }, [onMountChess, curBoard]);
 
+      //Web worker to get ai move in a different thread
       const onWorkerAi = () => {
         aiWorker(curBoard, playerColor, specialConditions).then(resultArr => {
             let result = resultArr[0];
@@ -253,8 +254,6 @@ const Chess = function ({onMountChess}) {
                     setCurBoard(newBoard);
                 }
                 return true;
-            } else {
-                //king in check!
             }
         } else {
             //not valid move, go back to original square
@@ -265,6 +264,7 @@ const Chess = function ({onMountChess}) {
         }
     }
 
+    //Returns boolean if king is in trouble
     function kingTrouble(pieceMoved, pieceFrom, curTile, color, board) {
         let tempBoard = [];
         for (let i = 0; i < 8; i++) {
@@ -532,6 +532,7 @@ const Chess = function ({onMountChess}) {
         }
     }
 
+    //Check for check mate
     function mateCheck(curColor, board) {
         for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {
@@ -553,6 +554,7 @@ const Chess = function ({onMountChess}) {
         return true
     }
 
+    //Ends the game
     function endGameCheckMate(winningColor, board) {
         for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {
@@ -586,8 +588,8 @@ const Chess = function ({onMountChess}) {
         }
     }
 
+    //evaluation bar number
     function getEval() {
-        
         if (mateCheck(playerColor, curBoard)) {
             endGameCheckMate(Math.abs(playerColor-1), curBoard);
             return 50000;

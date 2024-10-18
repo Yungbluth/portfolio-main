@@ -1,5 +1,7 @@
 
 /*
+Handles the logic of Ai chess bot making a move
+
 Value of pieces:
 Pawn: 100
 Knight: 320
@@ -124,6 +126,7 @@ const ChessAi = (curBoard, playerColor, specialConditions) => {
         return evalNum;
     }
 
+    //With a board and a player, returns an array of all possible moves that player can play
     function getPossibleMoves(possibleBoard, possiblePlayer) {
         let possibleMovesBoard = [];
         for (let i = 0; i < 8; i++) {
@@ -190,6 +193,7 @@ const ChessAi = (curBoard, playerColor, specialConditions) => {
         return possibleMovesBoard;
     }
 
+    //Returns boolean if king is in check
     function kingTrouble(pieceMoved, pieceFrom, curTile, color, board) {
         let tempBoard = [];
         for (let i = 0; i < 8; i++) {
@@ -244,6 +248,12 @@ const ChessAi = (curBoard, playerColor, specialConditions) => {
         return false
     }
 
+    /*
+    Alpha-beta pruning algo. Looks for lines with the best outcomes for ai and least good outcomes for player
+    passes lines have a worse worst case scenario
+    For example: If one move involves a worst case scenario of an even evaluation, when we look at another move and find we lose a rook we can ignore the rest of that path. This even evalation is our lower bound.
+    We also need to have a higher bound because we assume the player is also playing the best possible moves in response to the ai. Ignore all paths where the player is not playing the best move.
+    */
     function alphaBetaMax(alpha, beta, depthleft, possibleBoard) {
         if ( depthleft === 0 ) {return evalBoardState(possibleBoard)};
         let curMoves = getPossibleMoves(possibleBoard, aiColor);
@@ -286,7 +296,6 @@ const ChessAi = (curBoard, playerColor, specialConditions) => {
      }
 
     function isValidMove(piece, fromIndex, toIndex, tempBoard) {
-
         if (fromIndex === toIndex) {
             return false
         }
@@ -442,12 +451,13 @@ const ChessAi = (curBoard, playerColor, specialConditions) => {
         }
     }
 
-    let score = alphaBetaMax(-999999, 999999, depth, curBoard);
+    //Get the best move the ai finds and return that back to the main thread
+    let bestMove = alphaBetaMax(-999999, 999999, depth, curBoard);
 
-    if (!Array.isArray(score)) {
-        score = getPossibleMoves(curBoard, aiColor)[0];
+    if (!Array.isArray(bestMove)) {
+        bestMove = getPossibleMoves(curBoard, aiColor)[0];
     }
-    return [score, evalBoardState(score)];
+    return [bestMove, evalBoardState(bestMove)];
 };
 
 export default ChessAi;
