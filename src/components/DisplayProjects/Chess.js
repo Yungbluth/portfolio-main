@@ -36,7 +36,7 @@ const Chess = function ({onMountChess}) {
 
     const [playerColor] = useState(Math.round(Math.random()));
     const [curBoard, setCurBoard] = useState(setupBoard);
-    const [playerTurn, setPlayerTurn] = useState(true);
+    const [playerTurn, setPlayerTurn] = useState(playerColor === 0);
     const [curEval, setCurEval] = useState(0);
 
     //Castling rights for player left right, ai left right and En Passant column for player, ai
@@ -152,6 +152,14 @@ const Chess = function ({onMountChess}) {
         return freshBoard;
     }
 
+    //Ai goes first when player is black
+    useEffect(() => {
+        if (playerColor === 1) {
+            stopMove();
+            onWorkerAi();   
+        }
+    }, []);
+
     function getImage(pieceObj) {
         if (pieceObj === 0 || pieceObj === undefined) {
             return (<img src ={transparent} onClick={clickTile} draggable="false" style={{opacity: 0}} onDragOver={allowDrop} onDrop={endDrag} alt="Empty"></img>);
@@ -251,7 +259,6 @@ const Chess = function ({onMountChess}) {
                     } else {
                         endGameCheckMate(playerColor, newBoard);
                     }
-                    setCurBoard(newBoard);
                 }
                 return true;
             }
