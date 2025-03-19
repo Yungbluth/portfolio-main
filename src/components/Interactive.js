@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Sorting from "./DisplayProjects/Sorting"
 import Chess from "./DisplayProjects/Chess"
 import { FaGithub } from "react-icons/fa";
+import Numbers from "./DisplayProjects/Numbers"
 
 const Interactive = () => {
 
@@ -10,6 +11,8 @@ const Interactive = () => {
 
     let curBoard = null;
     let setCurBoard = null;
+    
+    let curCanvas = null;
 
     const onChildMountSort = (dataFromChild) => {
         curArray = dataFromChild[0];
@@ -19,6 +22,10 @@ const Interactive = () => {
       const onChildMountChess = (dataFromChild) => {
         curBoard = dataFromChild[0];
         setCurBoard = dataFromChild[1];
+      };
+
+      const onChildMountNumbers = (dataFromChild) => {
+        curCanvas = dataFromChild[0];
       };
 
     
@@ -64,6 +71,7 @@ const Interactive = () => {
     const tabData = [
         {label: "Sorting" },
         {label: "Chess" },
+        {label: "Number Recognizer"}
     ];
 
     function toggleOpacity() {
@@ -87,7 +95,7 @@ const Interactive = () => {
             return (<Chess onMountChess={onChildMountChess}/>)
         }
         if (activeTab === 2) {
-            return (<div>Tab 3</div>)
+            return (<Numbers onMountNumbers={onChildMountNumbers}/>)
         }
     }
     function portfolioGithubPage() {
