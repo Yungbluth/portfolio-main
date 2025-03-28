@@ -31,21 +31,24 @@ function Numbers() {
       //math to connect the large canvas with the 28x28 pixel grid
       let bounds = canvas.getBoundingClientRect();
       let percentage = 1/28;
-      context.lineTo(Math.ceil(((e.clientX - bounds.x) / bounds.width)/percentage), Math.ceil(((e.clientY - bounds.y) / bounds.height)/percentage));
-      context.stroke();
+      let xpos = ((e.clientX - bounds.x) / bounds.width)/percentage;
+      let ypos = ((e.clientY - bounds.y) / bounds.height)/percentage;
+      let pxData = context.getImageData(xpos,ypos,1,1);
+      pxData.data[3]=255;
+      context.putImageData(pxData,xpos,ypos);
     };
     
     //Start drawing
     
     canvas.addEventListener('mousedown', (e) => {
-      isDrawing = true;
+      if (e.button === 0) {
+        isDrawing = true;
+      }
     });
 
     //Stop drawing
     canvas.addEventListener('mouseup', (e) => {
       isDrawing = false;
-      context.stroke();
-      context.beginPath();
     });
 
     //Middle of drawing
