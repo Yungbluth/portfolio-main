@@ -1,40 +1,44 @@
 import React, { useRef, useEffect } from "react";
-import { read as readmat } from "mat-for-js";
-import fs from "fs";
-import curData from "./mnist-original.mat"
+
 
 function Numbers() {
   const canvasRef = useRef(null);
   let isDrawing = false;
-  let lineWidth = 5;
-  let startX;
-  let startY;
+  let heightmax = document.documentElement.clientHeight * 0.8 - 50;
+  let widthmax = document.documentElement.clientWidth * 0.8
 
 
   useEffect(() => {
     //Setup the canvas
     const canvas = canvasRef.current;
-    canvas.height = document.documentElement.clientHeight * 0.8 - 50;
-    canvas.width = document.documentElement.clientWidth * 0.8;
+    canvas.height = 28;
+    canvas.width = 28;
+    canvas.style.height = heightmax + "px";
+    canvas.style.width =  widthmax + "px";
     const context = canvas.getContext('2d');
+    //draws pixels nicer
+    context.imageSmoothingEnabled = false;
+    context.translate(-.5,-.5);
+    context.lineWidth = 1;
+
     
 
     const draw = (e) => {
       if(!isDrawing) {
         return;
       }
-      context.lineWidth = lineWidth;
-      context.lineCap = 'round';
 
-      context.lineTo(e.clientX - document.documentElement.clientWidth * 0.1, e.clientY - document.documentElement.clientHeight * 0.1);
+      //math to connect the large canvas with the 28x28 pixel grid
+      let bounds = canvas.getBoundingClientRect();
+      let percentage = 1/28;
+      context.lineTo(Math.ceil(((e.clientX - bounds.x) / bounds.width)/percentage), Math.ceil(((e.clientY - bounds.y) / bounds.height)/percentage));
       context.stroke();
     };
     
     //Start drawing
+    
     canvas.addEventListener('mousedown', (e) => {
       isDrawing = true;
-      startX = e.clientX - document.documentElement.clientWidth * 0.1;
-      startY = e.clientY - document.documentElement.clientHeight * 0.1;
     });
 
     //Stop drawing
@@ -53,7 +57,7 @@ function Numbers() {
     //Clears the canvas, currently on right-click
     //TODO: Change to a button
     canvas.addEventListener('contextmenu', (e) => {
-      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.clearRect(0, 0, widthmax, heightmax);
     });
     
     // Clean up function
@@ -75,7 +79,7 @@ function Numbers() {
   };
 
   return (
-    <canvas ref={canvasRef}/>
+    <canvas ref={canvasRef} id="canvas"/>
   );
 }
 
