@@ -1,11 +1,28 @@
-import React, { useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import weightsBiases from "./weightsbiases.txt";
+import { multiply } from 'mathjs';
 
 
 function Numbers() {
   const canvasRef = useRef(null);
+
   let isDrawing = false;
   let heightmax = document.documentElement.clientHeight * 0.8 - 50;
   let widthmax = document.documentElement.clientWidth * 0.8
+
+  let weightOne;
+  let biasOne;
+  let weightTwo;
+  let biasTwo;
+  fetch(weightsBiases).then((res) => res.text()).then((text) => {
+    let totalData = text.split("l");
+     weightOne = totalData[0].split("e").map(function(e){return e.match(/-?\d+(?:\.\d+)?/g).map(Number);});
+     console.log(weightOne[7]);
+     biasOne = totalData[1].split("e").map(function(e){return e.match(/-?\d+(?:\.\d+)?/g).map(Number);})[0];
+     weightTwo = totalData[2].split("e").map(function(e){return e.match(/-?\d+(?:\.\d+)?/g).map(Number);});
+     biasTwo = totalData[3].split("e").map(function(e){return e.match(/-?\d+(?:\.\d+)?/g).map(Number);})[0];
+  }).catch((e) => console.error(e));
+
 
 
   useEffect(() => {
@@ -19,7 +36,8 @@ function Numbers() {
     //draws pixels nicer
     context.imageSmoothingEnabled = false;
     context.translate(-.5,-.5);
-    context.lineWidth = 1;
+    context.lineWidth = 2;
+    context.lineCap = "round";
 
     
 
@@ -31,6 +49,9 @@ function Numbers() {
       //math to connect the large canvas with the 28x28 pixel grid
       let bounds = canvas.getBoundingClientRect();
       let percentage = 1/28;
+      //context.lineTo(Math.ceil(((e.clientX - bounds.x) / bounds.width)/percentage), Math.ceil(((e.clientY - bounds.y) / bounds.height)/percentage));
+      //context.stroke();
+      
       let xpos = ((e.clientX - bounds.x) / bounds.width)/percentage;
       let ypos = ((e.clientY - bounds.y) / bounds.height)/percentage;
       let pxData = context.getImageData(xpos,ypos,1,1);
@@ -44,11 +65,45 @@ function Numbers() {
       if (e.button === 0) {
         isDrawing = true;
       }
+      if (e.button === 1) {
+        //middle mouse send to NN
+        let curPixels = context.getImageData(0,0,canvas.height,canvas.width);
+        let pixelDataArray = curPixels.data;
+        let drawnImageArray = [];
+        for (let i = 0; i < pixelDataArray.length; i+=4) {
+          /*
+          if (pixelDataArray[i+3] === 255) {
+            drawnImageArray.push(255);
+          } else {
+            drawnImageArray.push(0);
+          }*/
+         drawnImageArray.push(pixelDataArray[i+3]);
+        }
+        //Get the pretrained weights and biases from txt file and do some string magic to put them into arrays
+        
+
+        let input = multiply(drawnImageArray, weightOne);
+        let hidden = relu(input.map((x,y) => x + biasOne[y]));
+        let scores = multiply(hidden, weightTwo).map((x,y) => x + biasTwo[y]);
+        let probs = softmax(scores);
+        let predict = probs.reduce((iMax, x, i, arr) => x > arr[iMax] ? i : iMax, 0);
+        console.log(predict);
+          
+
+        //input_layer = np.dot(x_test[num:num+1], weight1)
+        //input layer is image pixels dot weights1
+        //hidden layer is relu(input layer + bias1)
+        //scores is hidden layer dot weights2 + bias2
+        //probs is softmax(scores)
+        //predict is argmax(probs)
+      }
     });
 
     //Stop drawing
     canvas.addEventListener('mouseup', (e) => {
       isDrawing = false;
+      //context.stroke();
+      //context.beginPath();
     });
 
     //Middle of drawing
@@ -70,16 +125,18 @@ function Numbers() {
 
   }, []);
 
-  //Export the image to be used by the NN
-  const saveImage = () => {
-    const canvas = canvasRef.current;
-    const dataUrl = canvas.toDataURL('image/png');
+  function relu(arrInput) {
+    return arrInput.map((x) => Math.max(x, 0));
+  }
 
-    const link = document.createElement('a');
-    link.href = dataUrl;
-    link.download = 'canvas.png';
-    link.click();
-  };
+  function softmax(arr) {
+    const C = Math.max(...arr);
+    const d = arr.map((y) => Math.exp(y - C)).reduce((a, b) => a + b);
+    return arr.map((value, index) => { 
+        return Math.exp(value - C) / d;
+    })
+  }
+
 
   return (
     <canvas ref={canvasRef} id="canvas"/>
