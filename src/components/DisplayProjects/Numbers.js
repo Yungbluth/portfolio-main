@@ -1,10 +1,23 @@
 import React, { useState, useRef, useEffect } from "react";
 import weightsBiases from "./weightsbiases.txt";
 import { multiply } from 'mathjs';
+import * as tf from "@tensorflow/tfjs";
 
 
 function Numbers() {
   const canvasRef = useRef(null);
+
+  const [model, setModel] = useState(null);
+
+  useEffect(() => {
+    async function loadModel() {
+      const loadedModel = await tf.loadLayersModel("./my-model.json");
+      console.log("LOADED");
+      setModel(loadedModel);
+    }
+
+    loadModel();
+  }, []);
 
   let isDrawing = false;
   let heightmax = document.documentElement.clientHeight * 0.8 - 50;
@@ -53,14 +66,18 @@ function Numbers() {
       //math to connect the large canvas with the 28x28 pixel grid
       let bounds = canvas.getBoundingClientRect();
       let percentage = 1/28;
-      context.lineTo(Math.ceil(((e.clientX - bounds.x) / bounds.width)/percentage), Math.ceil(((e.clientY - bounds.y) / bounds.height)/percentage));
-      context.stroke();
-      /*
+      //context.lineTo(Math.ceil(((e.clientX - bounds.x) / bounds.width)/percentage), Math.ceil(((e.clientY - bounds.y) / bounds.height)/percentage));
+      //context.stroke();
+      
+      
       let xpos = ((e.clientX - bounds.x) / bounds.width)/percentage;
       let ypos = ((e.clientY - bounds.y) / bounds.height)/percentage;
       let pxData = context.getImageData(xpos,ypos,1,1);
       pxData.data[3]=255;
-      context.putImageData(pxData,xpos,ypos);*/
+      context.putImageData(pxData,xpos,ypos);
+      context.putImageData(pxData,xpos+1,ypos);
+      context.putImageData(pxData,xpos,ypos+1);
+      context.putImageData(pxData,xpos+1,ypos+1);
     };
     
     //Start drawing
@@ -136,8 +153,17 @@ function Numbers() {
       let scores = multiply(hiddenTwo, weightThree).map((x,y) => x + biasThree[y]);
       let probs = softmax(scores);
       let predict = probs.reduce((iMax, x, i, arr) => x > arr[iMax] ? i : iMax, 0);
-      document.getElementById("predictedNum").innerHTML = predict;
-      console.log(predict);
+      //document.getElementById("predictedNum").innerHTML = predict;
+      //console.log("OLD");
+      //console.log(predict);
+
+      let imgTensor = tf.tensor2d(drawnImageArray, [28, 28]);
+      let flatImgTensor = imgTensor.reshape([1, 28, 28, 1]);
+      let imgTensorPred = model.predict(flatImgTensor).argMax(-1);
+      let abca = imgTensorPred.dataSync()
+      document.getElementById("predictedNum").innerHTML = abca[0];
+
+
   }
 
 
