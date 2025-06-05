@@ -1,6 +1,6 @@
-# Developer Portfolio
+# Matthew Yungbluth's Portfolio
 
-A modern and responsive developer portfolio built with **React** and managed with **Yarn**. This portfolio showcases a selection of programming projects located in the `portfolio-main/src/components/DisplayProjects/` directory.
+A modern and responsive portfolio built with **React** and managed with **Yarn**. This portfolio showcases a selection of programming projects located in the `portfolio-main/src/components/DisplayProjects/` directory.
 
 🔗 **Live Demo**: [myungbluth.rf.gd](https://myungbluth.rf.gd/)
 
