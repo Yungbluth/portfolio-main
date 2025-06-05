@@ -1,70 +1,90 @@
-# Getting Started with Create React App
+# Developer Portfolio
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A modern and responsive developer portfolio built with **React** and managed with **Yarn**. This portfolio showcases a selection of programming projects located in the `portfolio-main/src/components/DisplayProjects/` directory.
 
-## Available Scripts
+🔗 **Live Demo**: [myungbluth.rf.gd](https://myungbluth.rf.gd/)
 
-In the project directory, you can run:
+## 📌 Overview
 
-### `yarn start`
+This portfolio was created to present professional and personal software development work. It includes detailed project displays, interactive components, and a clean, responsive design. The goal is to provide potential employers, collaborators, and peers a clear and visually appealing view of development capabilities.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## ✨ Features
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+- ⚛️ Built with React for modular, component-based architecture
+- 💼 Dynamic project showcase from `DisplayProjects` component
+- 🎨 Styled with responsive and accessible design in mind
+- 🌐 Hosted on a public domain for easy access
+- ⚡ Fast-loading and optimized for performance
 
-### `yarn test`
+## 📁 Project Structure
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+portfolio-main/  
+├── public/  
+├── src/  
+│ ├── components/  
+│ │ └── DisplayProjects/  
+│ │ │ ├─ Chess.js  
+│ │ │ ├─ Numbers.js  
+│ │ │ └─ Sorting.js.js  
+│ ├── App.js  
+│ └── index.js  
+├── package.json  
+└── yarn.lock  
 
-### `yarn build`
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- All featured projects are stored within the `DisplayProjects` folder.
+- Components are designed to be reusable and easy to maintain.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 🚀 Getting Started
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+To run the portfolio locally:
 
-### `yarn eject`
+### Prerequisites
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+- Node.js (>=14)
+- Yarn (preferred over npm)
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Installation
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-username/portfolio-main.git
+   cd portfolio-main
+Install dependencies:
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+bash
+Copy
+Edit
+yarn install
+Start the development server:
 
-## Learn More
+bash
+Copy
+Edit
+yarn start
+Open your browser and navigate to http://localhost:3000
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+📦 Build for Production
+To create an optimized production build:
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+bash
+Copy
+Edit
+yarn build
+🛠️ Technologies Used
+React – JavaScript library for building user interfaces
 
-### Code Splitting
+Yarn – Dependency management and package scripts
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+HTML/CSS – Structure and styling
 
-### Analyzing the Bundle Size
+📬 Contact
+For questions, collaborations, or feedback, feel free to reach out:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Website: https://myungbluth.rf.gd/  
 
-### Making a Progressive Web App
+Email: myungbluth1@gmail.com  
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+GitHub: github.com/Yungbluth
 
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `yarn build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Thank you for checking out this portfolio project!
